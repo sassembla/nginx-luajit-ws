@@ -1,0 +1,30 @@
+# tell nginx's build system where to find LuaJIT 2.1:
+# ふーむlibってどこよ、、、2.1でlibつくる方法が知りたい。
+export LUAJIT_LIB=/usr/local/Cellar/luajit/2.0.3_1/lib
+export LUAJIT_INC=/usr/local/Cellar/luajit/2.0.3_1/include/luajit-2.0
+
+NGX_DEVEL_KIT="ngx_devel_kit-0.2.19"
+LUA_NGX_MOD="lua-nginx-module-0.9.15"
+
+# Here we assume Nginx is to be installed under /opt/nginx/.
+./configure --prefix=/opt/nginx \
+	--with-ld-opt='-Wl,-rpath,$LUAJIT_LIB' \
+	--add-module=$NGX_DEVEL_KIT \
+	--add-module=$LUA_NGX_MOD
+
+# make -j2
+# make install
+
+
+
+
+# checking for LuaJIT library in /Users/illusionismine/Desktop/nginx-luajit/luajit-2.1/bin/luajit-2.1.0-alpha and /Users/illusionismine/Desktop/nginx-luajit/luajit-2.1/include/luajit-2.1 (specified by the LUAJIT_LIB and LUAJIT_INC env) ... not found
+# checking for LuaJIT library in /Users/illusionismine/Desktop/nginx-luajit/luajit-2.1/bin/luajit-2.1.0-alpha and /Users/illusionismine/Desktop/nginx-luajit/luajit-2.1/include/luajit-2.1 (specified by the LUAJIT_LIB and LUAJIT_INC env, with -ldl) ... not found
+#         ./configure: error: ngx_http_lua_module requires the Lua or LuaJIT library and LUAJIT_LIB is defined as 
+
+#         /Users/illusionismine/Desktop/nginx-luajit/luajit-2.1/bin/luajit-2.1.0-alpha
+
+#          and 
+        
+#         LUAJIT_INC (path for lua.h) 
+#         /Users/illusionismine/Desktop/nginx-luajit/luajit-2.1/include/luajit-2.1, but we cannot find LuaJIT there.

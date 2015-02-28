@@ -1,4 +1,4 @@
-#define NGX_CONFIGURE " --prefix=/opt/nginx --with-ld-opt=-Wl,-rpath,$LUAJIT_LIB --add-module=ngx_devel_kit-0.2.19 --add-module=lua-nginx-module-0.9.15"
+#define NGX_CONFIGURE " --prefix=/Users/illusionismine/Desktop/nginx-luajit/b --with-ld-opt=-Wl,-rpath,$LUAJIT_LIB --add-module=ngx_devel_kit-0.2.19 --add-module=lua-nginx-module-0.9.15"
 
 #ifndef NGX_COMPILER
 #define NGX_COMPILER  "clang 6.0 (clang-600.0.51) (based on LLVM 3.5svn)"
@@ -235,5 +235,130 @@
 
 #ifndef NDK
 #define NDK  1
+#endif
+
+
+#ifndef NGX_PCRE
+#define NGX_PCRE  1
+#endif
+
+
+#ifndef NGX_HAVE_PCRE_JIT
+#define NGX_HAVE_PCRE_JIT  1
+#endif
+
+
+#ifndef NGX_OPENSSL_MD5
+#define NGX_OPENSSL_MD5  1
+#endif
+
+
+#ifndef NGX_HAVE_OPENSSL_MD5_H
+#define NGX_HAVE_OPENSSL_MD5_H  1
+#endif
+
+
+#ifndef NGX_HAVE_MD5
+#define NGX_HAVE_MD5  1
+#endif
+
+
+#ifndef NGX_HAVE_SHA1
+#define NGX_HAVE_SHA1  1
+#endif
+
+
+#ifndef NGX_HAVE_OPENSSL_SHA1_H
+#define NGX_HAVE_OPENSSL_SHA1_H  1
+#endif
+
+
+#ifndef NGX_ZLIB
+#define NGX_ZLIB  1
+#endif
+
+
+#ifndef NGX_PREFIX
+#define NGX_PREFIX  "/Users/illusionismine/Desktop/nginx-luajit/b/"
+#endif
+
+
+#ifndef NGX_CONF_PREFIX
+#define NGX_CONF_PREFIX  "conf/"
+#endif
+
+
+#ifndef NGX_SBIN_PATH
+#define NGX_SBIN_PATH  ""
+#endif
+
+
+#ifndef NGX_CONF_PATH
+#define NGX_CONF_PATH  "conf/nginx.conf"
+#endif
+
+
+#ifndef NGX_PID_PATH
+#define NGX_PID_PATH  "logs/nginx.pid"
+#endif
+
+
+#ifndef NGX_LOCK_PATH
+#define NGX_LOCK_PATH  "logs/nginx.lock"
+#endif
+
+
+#ifndef NGX_ERROR_LOG_PATH
+#define NGX_ERROR_LOG_PATH  "logs/error.log"
+#endif
+
+
+#ifndef NGX_HTTP_LOG_PATH
+#define NGX_HTTP_LOG_PATH  "logs/access.log"
+#endif
+
+
+#ifndef NGX_HTTP_CLIENT_TEMP_PATH
+#define NGX_HTTP_CLIENT_TEMP_PATH  "client_body_temp"
+#endif
+
+
+#ifndef NGX_HTTP_PROXY_TEMP_PATH
+#define NGX_HTTP_PROXY_TEMP_PATH  "proxy_temp"
+#endif
+
+
+#ifndef NGX_HTTP_FASTCGI_TEMP_PATH
+#define NGX_HTTP_FASTCGI_TEMP_PATH  "fastcgi_temp"
+#endif
+
+
+#ifndef NGX_HTTP_UWSGI_TEMP_PATH
+#define NGX_HTTP_UWSGI_TEMP_PATH  "uwsgi_temp"
+#endif
+
+
+#ifndef NGX_HTTP_SCGI_TEMP_PATH
+#define NGX_HTTP_SCGI_TEMP_PATH  "scgi_temp"
+#endif
+
+
+#ifndef NGX_SUPPRESS_WARN
+#define NGX_SUPPRESS_WARN  1
+#endif
+
+
+#ifndef NGX_SMP
+#define NGX_SMP  1
+#endif
+
+
+#ifndef NGX_USER
+#define NGX_USER  "nobody"
+#endif
+
+
+#ifndef NGX_GROUP
+#define NGX_GROUP  "nobody"
 #endif
 

@@ -489,7 +489,7 @@ objs/autotest.c:7:5: warning: implicit declaration of function 'setproctitle' is
 1 warning generated.
 Undefined symbols for architecture x86_64:
   "_setproctitle", referenced from:
-      _main in autotest-91604d.o
+      _main in autotest-9fcf5c.o
 ld: symbol(s) not found for architecture x86_64
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 ----------
@@ -657,51 +657,192 @@ checking for getaddrinfo()
 
 
 ----------------------------------------
-checking for LuaJIT library in /LuaJIT-2.0.3/lib/libluajit.so and /LuaJIT-2.0.3/lib/luajit (specified by the LUAJIT_LIB and LUAJIT_INC env)
+checking for LuaJIT library in /usr/local/Cellar/luajit/2.0.3_1/lib and /usr/local/Cellar/luajit/2.0.3_1/include/luajit-2.0 (specified by the LUAJIT_LIB and LUAJIT_INC env)
 
-objs/autotest.c:4:10: fatal error: 'lauxlib.h' file not found
-#include <lauxlib.h>
-         ^
-1 error generated.
+
+----------------------------------------
+checking for export symbols by default (-E)
+
+ld: unknown option: -E
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
 ----------
 
 #include <sys/types.h>
 #include <unistd.h>
-#include <lauxlib.h>
+#include <stdio.h>
 
 int main() {
-    #if LUA_VERSION_NUM != 501
-#   error unsupported Lua language version
-#endif
-(void) luaL_newstate();;
+    printf("hello");;
     return 0;
 }
 
 ----------
-cc -pipe -I /LuaJIT-2.0.3/lib/luajit -o objs/autotest objs/autotest.c -Wl,-rpath,$LUAJIT_LIB -L/LuaJIT-2.0.3/lib/libluajit.so -lluajit-5.1 -lm
+cc -pipe -o objs/autotest objs/autotest.c -Wl,-rpath,$LUAJIT_LIB -Wl,-E
 ----------
 
 ----------------------------------------
-checking for LuaJIT library in /LuaJIT-2.0.3/lib/libluajit.so and /LuaJIT-2.0.3/lib/luajit (specified by the LUAJIT_LIB and LUAJIT_INC env, with -ldl)
+checking for export symbols by default (--export-all-symbols)
 
-objs/autotest.c:4:10: fatal error: 'lauxlib.h' file not found
-#include <lauxlib.h>
+ld: unknown option: --export-all-symbols
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+----------
+
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdio.h>
+
+int main() {
+    printf("hello");;
+    return 0;
+}
+
+----------
+cc -pipe -o objs/autotest objs/autotest.c -Wl,-rpath,$LUAJIT_LIB -Wl,--export-all-symbols
+----------
+
+----------------------------------------
+checking for SO_PASSCRED
+
+objs/autotest.c:8:31: error: use of undeclared identifier 'SO_PASSCRED'
+    setsockopt(1, SOL_SOCKET, SO_PASSCRED, NULL, 0);;
+                              ^
+1 error generated.
+----------
+
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
+int main() {
+    setsockopt(1, SOL_SOCKET, SO_PASSCRED, NULL, 0);;
+    return 0;
+}
+
+----------
+cc -pipe -o objs/autotest objs/autotest.c -Wl,-rpath,$LUAJIT_LIB
+----------
+
+----------------------------------------
+checking for PCRE library
+
+objs/autotest.c:4:10: fatal error: 'pcre.h' file not found
+#include <pcre.h>
          ^
 1 error generated.
 ----------
 
 #include <sys/types.h>
 #include <unistd.h>
-#include <lauxlib.h>
+#include <pcre.h>
 
 int main() {
-    #if LUA_VERSION_NUM != 501
-#   error unsupported Lua language version
-#endif
-(void) luaL_newstate();;
+    pcre *re;
+                          re = pcre_compile(NULL, 0, NULL, 0, NULL);
+                          if (re == NULL) return 1;
     return 0;
 }
 
 ----------
-cc -pipe -I /LuaJIT-2.0.3/lib/luajit -o objs/autotest objs/autotest.c -Wl,-rpath,$LUAJIT_LIB -L/LuaJIT-2.0.3/lib/libluajit.so -lluajit-5.1 -lm -ldl
+cc -pipe -o objs/autotest objs/autotest.c -Wl,-rpath,$LUAJIT_LIB -lpcre
 ----------
+
+----------------------------------------
+checking for PCRE library in /usr/local/
+
+
+----------------------------------------
+checking for PCRE JIT support
+
+
+----------------------------------------
+checking for md5 in system md library
+
+objs/autotest.c:4:10: fatal error: 'md5.h' file not found
+#include <md5.h>
+         ^
+1 error generated.
+----------
+
+#include <sys/types.h>
+#include <unistd.h>
+#include <md5.h>
+
+int main() {
+    MD5_CTX md5; MD5Init(&md5);
+    return 0;
+}
+
+----------
+cc -pipe -o objs/autotest objs/autotest.c -Wl,-rpath,$LUAJIT_LIB -lmd
+----------
+
+----------------------------------------
+checking for md5 in system md5 library
+
+objs/autotest.c:4:10: fatal error: 'md5.h' file not found
+#include <md5.h>
+         ^
+1 error generated.
+----------
+
+#include <sys/types.h>
+#include <unistd.h>
+#include <md5.h>
+
+int main() {
+    MD5_CTX md5; MD5Init(&md5);
+    return 0;
+}
+
+----------
+cc -pipe -o objs/autotest objs/autotest.c -Wl,-rpath,$LUAJIT_LIB -lmd5
+----------
+
+----------------------------------------
+checking for md5 in system OpenSSL crypto library
+
+objs/autotest.c:7:18: warning: 'MD5_Init' is deprecated: first deprecated in OS X 10.7 [-Wdeprecated-declarations]
+    MD5_CTX md5; MD5_Init(&md5);
+                 ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/openssl/md5.h:113:5: note: 'MD5_Init' has been explicitly marked deprecated here
+int MD5_Init(MD5_CTX *c) DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER;
+    ^
+1 warning generated.
+
+----------------------------------------
+checking for sha1 in system md library
+
+objs/autotest.c:4:10: fatal error: 'sha.h' file not found
+#include <sha.h>
+         ^
+1 error generated.
+----------
+
+#include <sys/types.h>
+#include <unistd.h>
+#include <sha.h>
+
+int main() {
+    SHA_CTX sha1; SHA1_Init(&sha1);
+    return 0;
+}
+
+----------
+cc -pipe -o objs/autotest objs/autotest.c -Wl,-rpath,$LUAJIT_LIB -lmd
+----------
+
+----------------------------------------
+checking for sha1 in system OpenSSL crypto library
+
+objs/autotest.c:7:19: warning: 'SHA1_Init' is deprecated: first deprecated in OS X 10.7 [-Wdeprecated-declarations]
+    SHA_CTX sha1; SHA1_Init(&sha1);
+                  ^
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/openssl/sha.h:121:5: note: 'SHA1_Init' has been explicitly marked deprecated here
+int SHA1_Init(SHA_CTX *c) DEPRECATED_IN_MAC_OS_X_VERSION_10_7_AND_LATER;
+    ^
+1 warning generated.
+
+----------------------------------------
+checking for zlib library
+
