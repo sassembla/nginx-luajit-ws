@@ -1,4 +1,4 @@
-#define NGX_CONFIGURE " --prefix=/Users/illusionismine/Desktop/nginx-luajit/b --with-ld-opt=-Wl,-rpath,$LUAJIT_LIB --add-module=ngx_devel_kit-0.2.19 --add-module=lua-nginx-module-0.9.15"
+#define NGX_CONFIGURE " --prefix=/Users/illusionismine/Desktop/nginx-luajit/bin --with-ld-opt=-Wl,-rpath,$LUAJIT_LIB --add-module=ngx_devel_kit-0.2.19 --add-module=lua-nginx-module-0.9.15"
 
 #ifndef NGX_COMPILER
 #define NGX_COMPILER  "clang 6.0 (clang-600.0.51) (based on LLVM 3.5svn)"
@@ -279,7 +279,7 @@
 
 
 #ifndef NGX_PREFIX
-#define NGX_PREFIX  "/Users/illusionismine/Desktop/nginx-luajit/b/"
+#define NGX_PREFIX  "/Users/illusionismine/Desktop/nginx-luajit/bin/"
 #endif
 
 

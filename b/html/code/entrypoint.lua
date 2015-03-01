@@ -47,7 +47,16 @@ function pwd(  )
 end
 
 -- dofile("")
+-- local server = require "resty.websocket.server" が通る理由があるはず。
+-- 地道に2つのことを学ぶか
+-- 1.luaでのrequireについて Done、ただし試せる環境は用意したほうが良さそう。
+-- 2.openrestyでのrequireについて
+-- nginx.configでの読み込み設定が必須だった。~~libまで読み込むことで、パス補完して読み込むことが可能になった。
+-- ということはこれで、WebSocketServerコードが動かせる。かなあ。
+require "websocket.protocol"
 
 pwd()
+
+
 
 

@@ -1563,47 +1563,47 @@ objs/addon/src/ngx_http_lua_worker.o:	$(ADDON_DEPS) \
 manpage:	objs/nginx.8
 
 objs/nginx.8:	man/nginx.8 objs/ngx_auto_config.h
-	sed -e "s|%%PREFIX%%|/Users/illusionismine/Desktop/nginx-luajit/b|" \
-		-e "s|%%PID_PATH%%|/Users/illusionismine/Desktop/nginx-luajit/b/logs/nginx.pid|" \
-		-e "s|%%CONF_PATH%%|/Users/illusionismine/Desktop/nginx-luajit/b/conf/nginx.conf|" \
-		-e "s|%%ERROR_LOG_PATH%%|/Users/illusionismine/Desktop/nginx-luajit/b/logs/error.log|" \
+	sed -e "s|%%PREFIX%%|/Users/illusionismine/Desktop/nginx-luajit/bin|" \
+		-e "s|%%PID_PATH%%|/Users/illusionismine/Desktop/nginx-luajit/bin/logs/nginx.pid|" \
+		-e "s|%%CONF_PATH%%|/Users/illusionismine/Desktop/nginx-luajit/bin/conf/nginx.conf|" \
+		-e "s|%%ERROR_LOG_PATH%%|/Users/illusionismine/Desktop/nginx-luajit/bin/logs/error.log|" \
 		< man/nginx.8 > $@
 
 install:	objs/nginx 		
-	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b' || mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b'
+	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin' || mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin'
 
-	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/sbin' 		|| mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/sbin'
-	test ! -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/sbin/nginx' 		|| mv '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/sbin/nginx' 			'$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/sbin/nginx.old'
-	cp objs/nginx '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/sbin/nginx'
+	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/sbin' 		|| mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/sbin'
+	test ! -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/sbin/nginx' 		|| mv '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/sbin/nginx' 			'$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/sbin/nginx.old'
+	cp objs/nginx '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/sbin/nginx'
 
-	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf' 		|| mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf'
+	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf' 		|| mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf'
 
-	cp conf/koi-win '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf'
-	cp conf/koi-utf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf'
-	cp conf/win-utf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf'
+	cp conf/koi-win '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf'
+	cp conf/koi-utf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf'
+	cp conf/win-utf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf'
 
-	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/mime.types' 		|| cp conf/mime.types '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf'
-	cp conf/mime.types '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/mime.types.default'
+	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/mime.types' 		|| cp conf/mime.types '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf'
+	cp conf/mime.types '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/mime.types.default'
 
-	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/fastcgi_params' 		|| cp conf/fastcgi_params '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf'
-	cp conf/fastcgi_params 		'$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/fastcgi_params.default'
+	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/fastcgi_params' 		|| cp conf/fastcgi_params '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf'
+	cp conf/fastcgi_params 		'$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/fastcgi_params.default'
 
-	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/fastcgi.conf' 		|| cp conf/fastcgi.conf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf'
-	cp conf/fastcgi.conf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/fastcgi.conf.default'
+	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/fastcgi.conf' 		|| cp conf/fastcgi.conf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf'
+	cp conf/fastcgi.conf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/fastcgi.conf.default'
 
-	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/uwsgi_params' 		|| cp conf/uwsgi_params '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf'
-	cp conf/uwsgi_params 		'$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/uwsgi_params.default'
+	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/uwsgi_params' 		|| cp conf/uwsgi_params '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf'
+	cp conf/uwsgi_params 		'$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/uwsgi_params.default'
 
-	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/scgi_params' 		|| cp conf/scgi_params '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf'
-	cp conf/scgi_params 		'$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/scgi_params.default'
+	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/scgi_params' 		|| cp conf/scgi_params '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf'
+	cp conf/scgi_params 		'$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/scgi_params.default'
 
-	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/nginx.conf' 		|| cp conf/nginx.conf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/nginx.conf'
-	cp conf/nginx.conf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/conf/nginx.conf.default'
+	test -f '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/nginx.conf' 		|| cp conf/nginx.conf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/nginx.conf'
+	cp conf/nginx.conf '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/conf/nginx.conf.default'
 
-	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/logs' 		|| mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/logs'
+	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/logs' 		|| mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/logs'
 
-	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/logs' || 		mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/logs'
+	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/logs' || 		mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/logs'
 
-	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/html' 		|| cp -R html '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b'
+	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/html' 		|| cp -R html '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin'
 
-	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/logs' || 		mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/b/logs'
+	test -d '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/logs' || 		mkdir -p '$(DESTDIR)/Users/illusionismine/Desktop/nginx-luajit/bin/logs'

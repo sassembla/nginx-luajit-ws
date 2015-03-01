@@ -5,14 +5,16 @@
 export LUAJIT_LIB=/usr/local/Cellar/luajit/2.0.3_1/lib
 export LUAJIT_INC=/usr/local/Cellar/luajit/2.0.3_1/include/luajit-2.0
 
+
+
 NGX_DEVEL_KIT="ngx_devel_kit-0.2.19"
 LUA_NGX_MOD="lua-nginx-module-0.9.15"
 
 # Here we assume Nginx is to be installed under /opt/nginx/.
-./configure --prefix=/Users/illusionismine/Desktop/nginx-luajit/b \
+./configure --prefix=/Users/illusionismine/Desktop/nginx-luajit/bin \
 	--with-ld-opt='-Wl,-rpath,$LUAJIT_LIB' \
 	--add-module=$NGX_DEVEL_KIT \
-	--add-module=$LUA_NGX_MOD
+	--add-module=$LUA_NGX_MOD	
 
 make -j2
 make install
