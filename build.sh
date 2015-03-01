@@ -5,8 +5,6 @@
 export LUAJIT_LIB=/usr/local/Cellar/luajit/2.0.3_1/lib
 export LUAJIT_INC=/usr/local/Cellar/luajit/2.0.3_1/include/luajit-2.0
 
-
-
 NGX_DEVEL_KIT="ngx_devel_kit-0.2.19"
 LUA_NGX_MOD="lua-nginx-module-0.9.15"
 
