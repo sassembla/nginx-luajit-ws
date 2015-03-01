@@ -2,7 +2,7 @@
 
 
 local bit = require "bit"
-local wbproto = require "resty.websocket.protocol"
+local wbproto = require "websocket.protocol"
 
 local new_tab = wbproto.new_tab
 local _recv_frame = wbproto.recv_frame
