@@ -1,6 +1,4 @@
-
--- このコンテキストを、クライアント側に対して送り込んで実行できるようにする。
--- nginxの再起動は御法度なので、実際にはここより下のコンテキストを叩き込む事になる。
+-- まだコンテキストの設計は行わない。 WebSocketへの介入ができるのか？というところに興味がある。
 
 local sock = ngx.socket.udp()
 -- local graphite_host = ngx.var.graphite_host
@@ -41,12 +39,15 @@ function dofile (filename)
 end
 
 function pwd(  )
+    ngx.say("here comes1!")
     ngx.say("here comes2!")
+
+    -- ngx.shared.stats:incr("hits", 1) なんじゃろ。
+    -- ngx.say(ngx.shared.stats:get("hits"))
 end
+
 -- dofile("")
 
 pwd()
-
-
 
 
