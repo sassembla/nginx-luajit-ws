@@ -1,10 +1,7 @@
+
 -- このコンテキストを、クライアント側に対して送り込んで実行できるようにする。
 -- nginxの再起動は御法度なので、実際にはここより下のコンテキストを叩き込む事になる。
 
--- 現状だと、コンパイルを経ないと反映されないので、読み込むところをどうにかして作らないといけない。接続先を求める感じにするかな。
--- あと実行スタイルを決めなければ。　open restyのやつを試そう。
-
--- それとluaの勉強も。 say以外のデバッグ方法を探さねば。
 local sock = ngx.socket.udp()
 -- local graphite_host = ngx.var.graphite_host
 -- local graphite_port = ngx.var.graphite_port
@@ -37,4 +34,19 @@ local sock = ngx.socket.udp()
 --     ngx.say(err)
 --     return
 -- end
-ngx.say("here comes!")
+
+function dofile (filename)
+    local f = assert(loadfile(filename))
+    return f()
+end
+
+function pwd(  )
+    ngx.say("here comes2!")
+end
+-- dofile("")
+
+pwd()
+
+
+
+
