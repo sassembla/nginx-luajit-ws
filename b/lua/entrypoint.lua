@@ -3,6 +3,7 @@
 function connectWebSocket()
 	local server = require "websocket.server"
 
+	-- ここがサーバコンテキストの発生ポイントか。好都合〜〜〜。wbの生成を確認したら、殺さずに保持して置けば良い形。
 	local wb, err = server:new{
 		-- timeout = 50000,
 		max_payload_len = 65535
@@ -12,6 +13,9 @@ function connectWebSocket()
 		ngx.log(ngx.ERR, "failed to new websocket: ", err)
 		return ngx.exit(444)
 	end
+
+	-- should hold wb to global context. 可能かな？ pointerだから出来ると思うんだよな。
+	-- 受け取った場合の挙動とかも別途用意すればいいもんな。
 
 	while true do
 		local data, typ, err = wb:recv_frame()
@@ -36,14 +40,7 @@ function connectWebSocket()
 			ngx.log(ngx.INFO, "client ponged")
 
 		elseif typ == "text" then
-			ngx.log(ngx.ERR, "client send text received")
-			-- local file = io.open("/Users/illusionismine/Desktop/nginx-luajit/b/lua/log.txt", "w")
-			-- ngx.log(ngx.ERR, "is_" + file)
-			-- file:write("Lalala. Alvanaar is amazing.")
-			-- file:flush()
-			-- file:close()
-
-			local bytes, err = wb:send_text(data)
+			local bytes, err = wb:send_text("文字列データはやりやすいなあ。")
 
 			if not bytes then
 				ngx.log(ngx.ERR, "failed to send text: ", err)

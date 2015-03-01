@@ -164,6 +164,8 @@ local function send_frame(self, fin, opcode, payload)
         return nil, "not initialized yet"
     end
 
+    ngx.log(ngx.ERR, "sendframe! sock がcontextを持ってる。")
+
     local bytes, err = _send_frame(sock, fin, opcode, payload,
                                    self.max_payload_len, self.send_masked)
     if not bytes then
@@ -171,6 +173,8 @@ local function send_frame(self, fin, opcode, payload)
     end
     return bytes, err
 end
+
+
 _M.send_frame = send_frame
 
 

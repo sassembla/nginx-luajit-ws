@@ -245,6 +245,7 @@ log_wrapper(ngx_log_t *log, const char *ident, ngx_uint_t level,
                           (int) size);
     }
 
+    // たぶんここでエラーに吐き出してる。エラーじゃないログって無いのかな。
     ngx_log_error(level, log, 0, "%s%*s", ident, (size_t) (p - buf), buf);
 
     return 0;
