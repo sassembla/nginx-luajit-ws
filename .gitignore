@@ -1,7 +1,7 @@
-b/logs/*
+bin/logs/*
 
-b/client_body_temp/*
-b/fastcgi_temp/*
-b/proxy_temp/*
-b/scgi_temp/*
-b/uwsgi_temp/*
+bin/client_body_temp/*
+bin/fastcgi_temp/*
+bin/proxy_temp/*
+bin/scgi_temp/*
+bin/uwsgi_temp/*
