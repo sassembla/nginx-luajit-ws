@@ -489,7 +489,7 @@ objs/autotest.c:7:5: warning: implicit declaration of function 'setproctitle' is
 1 warning generated.
 Undefined symbols for architecture x86_64:
   "_setproctitle", referenced from:
-      _main in autotest-a1dec9.o
+      _main in autotest-d5ffd3.o
 ld: symbol(s) not found for architecture x86_64
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 ----------
@@ -657,7 +657,7 @@ checking for getaddrinfo()
 
 
 ----------------------------------------
-checking for LuaJIT library in /usr/local/Cellar/luajit/2.0.3_1/lib and /usr/local/Cellar/luajit/2.0.3_1/include/luajit-2.0 (specified by the LUAJIT_LIB and LUAJIT_INC env)
+checking for LuaJIT library in /Users/illusionismine/Desktop/nginx-luajit/luajit-2.0.3_1/2.0.3_1/lib and /Users/illusionismine/Desktop/nginx-luajit/luajit-2.0.3_1/2.0.3_1/include/luajit-2.0 (specified by the LUAJIT_LIB and LUAJIT_INC env)
 
 
 ----------------------------------------

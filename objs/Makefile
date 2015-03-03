@@ -11,7 +11,7 @@ ALL_INCS = -I src/core \
 	-I src/os/unix \
 	-I ngx_devel_kit-0.2.19/objs \
 	-I objs/addon/ndk \
-	-I /usr/local/Cellar/luajit/2.0.3_1/include/luajit-2.0 \
+	-I /Users/illusionismine/Desktop/nginx-luajit/luajit-2.0.3_1/2.0.3_1/include/luajit-2.0 \
 	-I lua-nginx-module-0.9.15/src/api \
 	-I /usr/local/include \
 	-I objs \
@@ -87,7 +87,7 @@ CORE_INCS = -I src/core \
 	-I src/os/unix \
 	-I ngx_devel_kit-0.2.19/objs \
 	-I objs/addon/ndk \
-	-I /usr/local/Cellar/luajit/2.0.3_1/include/luajit-2.0 \
+	-I /Users/illusionismine/Desktop/nginx-luajit/luajit-2.0.3_1/2.0.3_1/include/luajit-2.0 \
 	-I lua-nginx-module-0.9.15/src/api \
 	-I /usr/local/include \
 	-I objs
@@ -436,7 +436,7 @@ objs/nginx:	objs/src/core/nginx.o \
 	objs/addon/src/ngx_http_lua_config.o \
 	objs/addon/src/ngx_http_lua_worker.o \
 	objs/ngx_modules.o \
-	-Wl,-rpath,$LUAJIT_LIB -L/usr/local/Cellar/luajit/2.0.3_1/lib -lluajit-5.1 -lm -pagezero_size 10000 -image_base 100000000 -L/usr/local/lib -lpcre -lcrypto -lcrypto -lz
+	-Wl,-rpath,$LUAJIT_LIB -L/Users/illusionismine/Desktop/nginx-luajit/luajit-2.0.3_1/2.0.3_1/lib -lluajit-5.1 -lm -pagezero_size 10000 -image_base 100000000 -L/usr/local/lib -lpcre -lcrypto -lcrypto -lz
 	
 
 
