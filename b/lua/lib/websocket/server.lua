@@ -36,7 +36,11 @@ function _M.new(self, opts)
         return nil, "response header already sent"
     end
 
+    -- construct WebSocket connect from server to client.
+
+    -- discard body
     read_body()
+
 
     if http_ver() ~= 1.1 then
         return nil, "bad http version"
@@ -163,8 +167,6 @@ local function send_frame(self, fin, opcode, payload)
     if not sock then
         return nil, "not initialized yet"
     end
-
-    ngx.log(ngx.ERR, "sendframe! sock がcontextを持ってる。")
 
     local bytes, err = _send_frame(sock, fin, opcode, payload,
                                    self.max_payload_len, self.send_masked)
