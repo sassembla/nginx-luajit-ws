@@ -1,5 +1,6 @@
 projectpath=$(pwd)
 
+# luajit requires from Lua-nginx module
 export LUAJIT_LIB=$projectpath/luajit-2.1/lib
 export LUAJIT_INC=$projectpath/luajit-2.1/include/luajit-2.1
 
