@@ -5,3 +5,5 @@ bin/fastcgi_temp/*
 bin/proxy_temp/*
 bin/scgi_temp/*
 bin/uwsgi_temp/*
+
+objs/*
