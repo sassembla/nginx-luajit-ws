@@ -5,7 +5,7 @@ relver=0
 version=${majver}.${minver}.${relver}-alpha
 abiver=5.1
 
-prefix=/Users/illusionismine/Desktop/nginx-luajit/luajit-2.1
+prefix=/Users/illusionismine/Desktop/nginx-luajit2/luajit-2.1
 multilib=lib
 exec_prefix=${prefix}
 libdir=${exec_prefix}/${multilib}

@@ -110,6 +110,8 @@ static ngx_command_t ngx_http_lua_cmds[] = {
       0,
       NULL },
 
+    // このへんでlua_package_pathをセットしてるっぽいので、/始まりで無かったら相対で持ってくるとかにしたい感じ
+
     { ngx_string("lua_package_path"),
       NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE1,
       ngx_http_lua_package_path,
