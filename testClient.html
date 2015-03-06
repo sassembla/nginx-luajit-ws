@@ -4,7 +4,7 @@
             var ws = null;
             function connect() {
                 if (ws !== null) return log('already connected');
-                ws = new WebSocket('ws://127.0.0.1:80/lua-test');
+                ws = new WebSocket('ws://127.0.0.1:80/client');
                 ws.onopen = function () {
                     log('connected');
                     send("connected! send to server");
