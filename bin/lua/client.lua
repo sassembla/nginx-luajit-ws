@@ -1,14 +1,44 @@
--- entrypoint for WebSocket connect.
+IDENTIFIER_CENTRAL = "central"
+IDENTIFIER_CLIENT = "client"
 
--- グローバルなコンテキストで汚いけど実験。
+
+
+-- entrypoint for WebSocket client connecttion.
+
+
+-- setup redis pub-sub
 local redis = require "redis.redis"
 
-subscribeRedisCon = redis:new()
-publishRedisCon = redis:new()
 
-local server = require "websocket.server"
+subRedisCon = redis:new()
 
-wb, wErr = server:new{
+local ok, err = subRedisCon:connect("127.0.0.1", 6379)
+
+if not ok then
+	ngx.log(ngx.ERR, "failed to generate subscriver")
+	return
+end
+
+
+pubRedisCon = redis:new()
+
+local ok, err = subRedisCon:subscribe(IDENTIFIER_CLIENT)
+if not ok then
+	ngx.log(ngx.ERR, "failed to start subscriver")
+	return
+end
+
+local ok, err = pubRedisCon:connect("127.0.0.1", 6379)
+if not ok then
+	ngx.log(ngx.ERR, "failed to generate publisher")
+	return
+end
+
+
+-- setup websocket client
+local wsServer = require "websocket.server"
+
+wb, wErr = wsServer:new{
 	timeout = 10000000,
 	max_payload_len = 65535
 }
@@ -19,40 +49,10 @@ if not wb then
 end
 
 
+
 function connectWebSocket()
-	-- 手段を纏めると、
-	-- ・辞書でwbの保持 -> wbそのものは無理っぽい。どこで駄目になってるかはわかんないけど、値でないと無理なんだろう。
-	-- 		sockだったら？ 駄目
-	-- 		もっと小さい情報ってあるのかな、、っておもったが、まだかかりそう。
-	-- ・redisでpub-sub
-	-- 		ngx.thread.spawn でスレッド作って動かすとか出来そう。
-	-- 		-> 出来た。
-	-- ・wb内部でつかっているsocketのportみつけてそこに向かってフォーマットかけて送るコードを書く
-	-- 		->面倒ぽい、、redisの実装を書き替えてcontextglobalなnginxモジュール作るか。
-	-- のどれか。redisのpub-subにはあんまり頼りたくない。
-
-	local ok, err = subscribeRedisCon:connect("127.0.0.1", 6379)
-	if not ok then
-		ngx.log(ngx.ERR, "failed to generate subscriver")
-		return
-	end
-
-	local ok, err = subscribeRedisCon:subscribe("str")
-	if not ok then
-		ngx.log(ngx.ERR, "failed to start subscriver")
-		return
-	end
-
-
-	local ok, err = publishRedisCon:connect("127.0.0.1", 6379)
-	if not ok then
-		ngx.log(ngx.ERR, "failed to generate publisher")
-		return
-	end
-
 	-- start subscribe
 	ngx.thread.spawn(subscribe)
-
 
 	-- start websocket serving
 	while true do
@@ -79,29 +79,27 @@ function connectWebSocket()
 			ngx.log(ngx.INFO, "client ponged")
 
 		elseif typ == "text" then
-			publishRedisCon:publish("str", "test!")
+			pubRedisCon:publish(IDENTIFIER_CENTRAL, data)
 		end
 	end
-
 
 	wb:send_close()
 end
 
-
-
+-- subscribe loop
+-- waiting data from central.
 function subscribe ()
 	while true do
-		local res, err = subscribeRedisCon:read_reply()
+		local res, err = subRedisCon:read_reply()
 		if not res then
 			ngx.log(ngx.ERR, "redis subscribe read error:", err)
 		else
-			-- ngx.log(ngx.ERR, "4!", res)
-			for i,v in ipairs(res) do
-				ngx.log(ngx.ERR, "i:", i, " v:", v)
-			end
+			-- for i,v in ipairs(res) do
+			-- 	ngx.log(ngx.ERR, "client i:", i, " v:", v)
+			-- end
 
 			-- send message with WebSocket for all subscribers.
-			local bytes, err = wb:send_text("ここ、固定データから可変データに変えればそれで終わり")
+			local bytes, err = wb:send_text(res[3])
 
 			if not bytes then
 				ngx.log(ngx.ERR, "failed to send text:", err)
@@ -111,25 +109,5 @@ function subscribe ()
 		end
 	end
 end
-
-
--- 辞書で維持できるのはコンテキストを超えられるものだけ = value系のみなので、今回の用途には使えない。
-function dictor (sock)
-	local dogs = ngx.shared.dogs
-	local val0 = dogs:get("Jim")
-	ngx.log(ngx.ERR, "val0:", val0)
-
-	if val0 then
-		local val = dogs:get("Jim")
-		ngx.log(ngx.ERR, " val:", val)
-	else
-		ngx.log(ngx.ERR, " set!")
-		dogs:set("Jim", sock)
-
-		local val2 = dogs:get("Jim")
-		ngx.log(ngx.ERR, " val2:", val2)
-	end
-end
-
 
 connectWebSocket()

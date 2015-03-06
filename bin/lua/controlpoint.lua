@@ -1,41 +1,46 @@
+IDENTIFIER_CENTRAL = "central"
+IDENTIFIER_CLIENT = "client"
+
+
 function main ()
-	local redis = require "redis.redis"
-	local red = redis:new()
-	local ok, err = red:connect("127.0.0.1", 6379)
-	ngx.log(ngx.ERR, "1, main control restarted:", ok, " err:", err)
+	-- start subscribe message to central
+	local redis = require("redis.redis")
 	
-	local ok2, err2 = red:subscribe("str")
-	ngx.log(ngx.ERR, "2!")
+	-- generate subscriber for the message from clients
+	local subRedisCon = redis:new()
+	local ok, err = subRedisCon:connect("127.0.0.1", 6379)
+	if not ok then
+		ngx.log(ngx.ERR, "failed to generate central subscriber")
+	end
+	local ok, err = subRedisCon:subscribe(IDENTIFIER_CENTRAL)
+	if not ok then
+		ngx.log(ngx.ERR, "failed to start subscribe central subscriber")
+	end
 
-	pub()
 
-	ngx.log(ngx.ERR, "3!")
+	-- generate publisher to clients
+	local pubRedisCon = redis:new()
+	local ok, err = pubRedisCon:connect("127.0.0.1", 6379)
+	if not ok then
+		ngx.log(ngx.ERR, "failed to generate central publisher")
+	end
 
+
+	-- start waiting loop
 	while true do
-
-		local res, err = red:read_reply()
+		local res, err = subRedisCon:read_reply()
 		if not res then
-			ngx.log(ngx.ERR, "5!", err)
+			ngx.log(ngx.ERR, "failed to receiving data from clients, err:", err)
 		end
 
-		-- ngx.log(ngx.ERR, "4!", res)
-		for i,v in ipairs(res) do
-			ngx.log(ngx.ERR, "i:", i, " v:", v)
-		end
-		break
-	end
-end
+		-- for i,v in ipairs(res) do
+		-- 	ngx.log(ngx.ERR, "central i:", i, " v:", v)
+		-- end
 
-function pub ()
-	local redis = require "redis.redis"
-	
-	local red = redis:new()
-	local ok, err = red:connect("127.0.0.1", 6379)
-	
-	res, err = red:publish("str", "Hello")
-	if not res then
-		ngx.log(ngx.ERR, "err:", err)
+		pubRedisCon:publish(IDENTIFIER_CLIENT, res[3])
+
 	end
+
 end
 
 main()
