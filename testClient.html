@@ -30,6 +30,7 @@
                 if (ws === null) return log('please connect first');
                 log('send: ' + text);
                 ws.send(text);
+
                 return false;
             }
             function log(text) {

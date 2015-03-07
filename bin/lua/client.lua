@@ -8,26 +8,26 @@ IDENTIFIER_CLIENT = "client"
 
 -- setup redis pub-sub
 local redis = require "redis.redis"
+local uuid = require "uuid.uuid"
+
+local serverId = uuid.getUUID()
 
 
 subRedisCon = redis:new()
-
 local ok, err = subRedisCon:connect("127.0.0.1", 6379)
-
 if not ok then
 	ngx.log(ngx.ERR, "failed to generate subscriver")
 	return
 end
-
-
-pubRedisCon = redis:new()
-
+subRedisCon:set_timeout(1000 * 60 * 60)
 local ok, err = subRedisCon:subscribe(IDENTIFIER_CLIENT)
 if not ok then
 	ngx.log(ngx.ERR, "failed to start subscriver")
 	return
 end
 
+
+pubRedisCon = redis:new()
 local ok, err = pubRedisCon:connect("127.0.0.1", 6379)
 if not ok then
 	ngx.log(ngx.ERR, "failed to generate publisher")
@@ -36,7 +36,7 @@ end
 
 
 -- setup websocket client
-local wsServer = require "websocket.server"
+local wsServer = require "ws.websocketServer"
 
 wb, wErr = wsServer:new{
 	timeout = 10000000,

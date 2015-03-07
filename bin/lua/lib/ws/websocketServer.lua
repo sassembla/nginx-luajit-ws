@@ -1,36 +1,11 @@
--- Copyright (C) Yichun Zhang (agentzh)
-
-
 local bit = require "bit"
-local wbproto = require "websocket.protocol"
+local protocol = require "ws.websocketProtocol"
+local uuid = require "uuid.uuid"
 
-local _recv_frame = wbproto.recv_frame
-local _send_frame = wbproto.send_frame
-local http_ver = ngx.req.http_version
-local req_sock = ngx.req.socket
-local ngx_header = ngx.header
-local req_headers = ngx.req.get_headers
-local str_lower = string.lower
-local char = string.char
-local str_find = string.find
-local sha1_bin = ngx.sha1_bin
-local base64 = ngx.encode_base64
-local ngx = ngx
-local read_body = ngx.req.read_body
-local band = bit.band
-local rshift = bit.rshift
-local type = type
-local setmetatable = setmetatable
--- local print = print
+local M = {[0] = "websocketServer:" .. uuid.getUUID()}
+local mt = { __index = M }
 
-
-local _M = table.new(0, 10)
-_M._VERSION = '0.05'
-
-local mt = { __index = _M }
-
-
-function _M.new(self, opts)
+function M.new(self, opts)
     if ngx.headers_sent then
         return nil, "response header already sent"
     end
@@ -38,20 +13,20 @@ function _M.new(self, opts)
     -- construct WebSocket connect from server to client.
 
     -- discard body
-    read_body()
+    ngx.req.read_body()
 
-
-    if http_ver() ~= 1.1 then
+    -- check header
+    if ngx.req.http_version() ~= 1.1 then
         return nil, "bad http version"
     end
 
-    local headers = req_headers()
+    local headers = ngx.req.get_headers()
 
     local val = headers.upgrade
     if type(val) == "table" then
         val = val[1]
     end
-    if not val or str_lower(val) ~= "websocket" then
+    if not val or string.lower(val) ~= "websocket" then
         return nil, "bad \"upgrade\" request header"
     end
 
@@ -59,7 +34,7 @@ function _M.new(self, opts)
     if type(val) == "table" then
         val = val[1]
     end
-    if not val or not str_find(str_lower(val), "upgrade", 1, true) then
+    if not val or not string.find(string.lower(val), "upgrade", 1, true) then
         return nil, "bad \"connection\" request header"
     end
 
@@ -85,14 +60,14 @@ function _M.new(self, opts)
     end
 
     if protocols then
-        ngx_header["Sec-WebSocket-Protocol"] = protocols
+        ngx.header["Sec-WebSocket-Protocol"] = protocols
     end
-    ngx_header["Upgrade"] = "websocket"
+    ngx.header["Upgrade"] = "websocket"
 
-    local sha1 = sha1_bin(key .. "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
-    ngx_header["Sec-WebSocket-Accept"] = base64(sha1)
+    local sha1 = ngx.sha1_bin(key .. "258EAFA5-E914-47DA-95CA-C5AB0DC85B11")
+    ngx.header["Sec-WebSocket-Accept"] = ngx.encode_base64(sha1)
 
-    ngx_header["Content-Type"] = nil
+    ngx.header["Content-Type"] = nil
 
     ngx.status = 101
     local ok, err = ngx.send_headers()
@@ -105,7 +80,7 @@ function _M.new(self, opts)
     end
 
     local sock
-    sock, err = req_sock(true)
+    sock, err = ngx.req.socket(true)
     if not sock then
         return nil, err
     end
@@ -129,7 +104,7 @@ function _M.new(self, opts)
 end
 
 
-function _M.set_timeout(self, time)
+function M.set_timeout(self, time)
     local sock = self.sock
     if not sock then
         return nil, nil, "not initialized yet"
@@ -139,7 +114,7 @@ function _M.set_timeout(self, time)
 end
 
 
-function _M.recv_frame(self)
+function M.recv_frame(self)
     if self.fatal then
         return nil, nil, "fatal error already happened"
     end
@@ -149,8 +124,8 @@ function _M.recv_frame(self)
         return nil, nil, "not initialized yet"
     end
 
-    local data, typ, err =  _recv_frame(sock, self.max_payload_len, true)
-    if not data and not str_find(err, ": timeout", 1, true) then
+    local data, typ, err =  protocol.recv_frame(sock, self.max_payload_len, true)
+    if not data and not string.find(err, ": timeout", 1, true) then
         self.fatal = true
     end
     return data, typ, err
@@ -167,7 +142,7 @@ local function send_frame(self, fin, opcode, payload)
         return nil, "not initialized yet"
     end
 
-    local bytes, err = _send_frame(sock, fin, opcode, payload,
+    local bytes, err = protocol.send_frame(sock, fin, opcode, payload,
                                    self.max_payload_len, self.send_masked)
     if not bytes then
         self.fatal = true
@@ -176,39 +151,39 @@ local function send_frame(self, fin, opcode, payload)
 end
 
 
-_M.send_frame = send_frame
+M.send_frame = send_frame
 
 
-function _M.send_text(self, data)
+function M.send_text(self, data)
     return send_frame(self, true, 0x1, data)
 end
 
 
-function _M.send_binary(self, data)
+function M.send_binary(self, data)
     return send_frame(self, true, 0x2, data)
 end
 
 
-function _M.send_close(self, code, msg)
+function M.send_close(self, code, msg)
     local payload
     if code then
         if type(code) ~= "number" or code > 0x7fff then
         end
-        payload = char(band(rshift(code, 8), 0xff), band(code, 0xff))
+        payload = string.char(bit.band(bit.rshift(code, 8), 0xff), bit.band(code, 0xff))
                         .. (msg or "")
     end
     return send_frame(self, true, 0x8, payload)
 end
 
 
-function _M.send_ping(self, data)
+function M.send_ping(self, data)
     return send_frame(self, true, 0x9, data)
 end
 
 
-function _M.send_pong(self, data)
+function M.send_pong(self, data)
     return send_frame(self, true, 0xa, data)
 end
 
 
-return _M
+return M
