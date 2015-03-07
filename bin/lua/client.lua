@@ -9,6 +9,7 @@ IDENTIFIER_CLIENT = "client"
 -- setup redis pub-sub
 local redis = require "redis.redis"
 local uuid = require "uuid.uuid"
+local json = require "cJSON"
 
 local serverId = uuid.getUUID()
 
@@ -56,19 +57,23 @@ function connectWebSocket()
 
 	-- start websocket serving
 	while true do
-		local data, typ, err = wb:recv_frame()
+		local recv_data, typ, err = wb:recv_frame()
 
 		if wb.fatal then
 			ngx.log(ngx.ERR, "failed to receive frame: ", err)
 			return ngx.exit(444)
 		end
-		if not data then
+		if not recv_data then
 			local bytes, err = wb:send_ping()
 			if not bytes then
 				ngx.log(ngx.ERR, "failed to send ping: ", err)
 				return ngx.exit(444)
 			end
-		elseif typ == "close" then break
+		end
+
+		if typ == "close" then
+			ngx.log(ngx.ERR, "connection closed:", serverId)
+			break
 		elseif typ == "ping" then
 			local bytes, err = wb:send_pong()
 			if not bytes then
@@ -79,7 +84,10 @@ function connectWebSocket()
 			ngx.log(ngx.INFO, "client ponged")
 
 		elseif typ == "text" then
-			pubRedisCon:publish(IDENTIFIER_CENTRAL, data)
+			local result = json.tst()
+			ngx.log(ngx.ERR, "res:", result)
+			-- local jsonData = json.encode({connectionId = serverId, data = recv_data})
+			pubRedisCon:publish(IDENTIFIER_CENTRAL, "jsonData")
 		end
 	end
 

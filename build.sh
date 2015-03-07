@@ -10,8 +10,6 @@ LUA_NGX_MOD="lua-nginx-module-0.9.15"
 HTTP_REDIS_MOD="ngx_http_redis-0.3.7"
 PCRE="pcre-8.36"
 
-# still depends on lua 5.1 dylib, we should complete it.
-
 # make & install nginx to PROJECT_PATH/bin
 ./configure --prefix=$projectpath/bin \
 	--with-ld-opt='-Wl,-rpath,$LUAJIT_LIB' \
