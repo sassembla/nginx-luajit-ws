@@ -2,6 +2,11 @@ IDENTIFIER_CENTRAL = "central"
 IDENTIFIER_CLIENT = "client"
 
 
+STATE_CONNECT = "connect"
+STATE_MESSAGE = "message"
+STATE_DISCONNECT_1 = "disconnect1"
+STATE_DISCONNECT_2 = "disconnect2"
+
 
 -- entrypoint for WebSocket client connecttion.
 
@@ -56,12 +61,18 @@ function connectWebSocket()
 	-- start subscribe
 	ngx.thread.spawn(subscribe)
 
+	-- send connected
+	local jsonData = json:encode({connectionId = serverId, state = STATE_CONNECT})
+	pubRedisCon:publish(IDENTIFIER_CENTRAL, jsonData)
+
 	-- start websocket serving
 	while true do
 		local recv_data, typ, err = wb:recv_frame()
 
 		if wb.fatal then
-			ngx.log(ngx.ERR, "failed to receive frame: ", err)
+			local jsonData = json:encode({connectionId = serverId, state = STATE_DISCONNECT_1})
+			pubRedisCon:publish(IDENTIFIER_CENTRAL, jsonData)
+
 			return ngx.exit(444)
 		end
 		if not recv_data then
@@ -73,6 +84,9 @@ function connectWebSocket()
 		end
 
 		if typ == "close" then
+			local jsonData = json:encode({connectionId = serverId, state = STATE_DISCONNECT_2})
+			pubRedisCon:publish(IDENTIFIER_CENTRAL, jsonData)
+
 			ngx.log(ngx.ERR, "connection closed:", serverId)
 			break
 		elseif typ == "ping" then
@@ -85,8 +99,8 @@ function connectWebSocket()
 			ngx.log(ngx.INFO, "client ponged")
 
 		elseif typ == "text" then
-			-- post to central.
-			local jsonData = json:encode({connectionId = serverId, data = recv_data})
+			-- post message to central.
+			local jsonData = json:encode({connectionId = serverId, data = recv_data, state = STATE_MESSAGE})
 			pubRedisCon:publish(IDENTIFIER_CENTRAL, jsonData)
 		end
 	end
@@ -101,6 +115,7 @@ function subscribe ()
 		local res, err = subRedisCon:read_reply()
 		if not res then
 			ngx.log(ngx.ERR, "redis subscribe read error:", err)
+			break
 		else
 			-- for i,v in ipairs(res) do
 			-- 	ngx.log(ngx.ERR, "client i:", i, " v:", v)
