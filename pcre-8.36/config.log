@@ -30,8 +30,8 @@ Kernel configured for up to 4 processors.
 Processor type: i486 (Intel 80486)
 Processors active: 0 1 2 3
 Primary memory available: 4.00 gigabytes
-Default processor set: 197 tasks, 909 threads, 4 processors
-Load average: 2.75, Mach factor: 1.32
+Default processor set: 159 tasks, 717 threads, 4 processors
+Load average: 1.82, Mach factor: 2.37
 /bin/machine           = unknown
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
@@ -1546,7 +1546,7 @@ pcre_cv_cc_visibility=yes
 ## Output variables. ##
 ## ----------------- ##
 
-ACLOCAL='${SHELL} /Users/illusionismine/Desktop/nginx-luajit2/pcre-8.36/missing aclocal-1.14'
+ACLOCAL='${SHELL} /Users/illusionismine/Desktop/nginx-luajit/pcre-8.36/missing aclocal-1.14'
 AMDEPBACKSLASH='\'
 AMDEP_FALSE='#'
 AMDEP_TRUE=''
@@ -1557,9 +1557,9 @@ AM_DEFAULT_VERBOSITY='0'
 AM_V='$(V)'
 AR='ar'
 AS='as'
-AUTOCONF='${SHELL} /Users/illusionismine/Desktop/nginx-luajit2/pcre-8.36/missing autoconf'
-AUTOHEADER='${SHELL} /Users/illusionismine/Desktop/nginx-luajit2/pcre-8.36/missing autoheader'
-AUTOMAKE='${SHELL} /Users/illusionismine/Desktop/nginx-luajit2/pcre-8.36/missing automake-1.14'
+AUTOCONF='${SHELL} /Users/illusionismine/Desktop/nginx-luajit/pcre-8.36/missing autoconf'
+AUTOHEADER='${SHELL} /Users/illusionismine/Desktop/nginx-luajit/pcre-8.36/missing autoheader'
+AUTOMAKE='${SHELL} /Users/illusionismine/Desktop/nginx-luajit/pcre-8.36/missing automake-1.14'
 AWK='awk'
 CC='cc'
 CCDEPMODE='depmode=gcc3'
@@ -1610,7 +1610,7 @@ LIBZ=''
 LIPO='lipo'
 LN_S='ln -s'
 LTLIBOBJS=''
-MAKEINFO='${SHELL} /Users/illusionismine/Desktop/nginx-luajit2/pcre-8.36/missing makeinfo'
+MAKEINFO='${SHELL} /Users/illusionismine/Desktop/nginx-luajit/pcre-8.36/missing makeinfo'
 MANIFEST_TOOL=':'
 MKDIR_P='./install-sh -c -d'
 NM='/usr/bin/nm'
@@ -1708,7 +1708,7 @@ host_vendor='apple'
 htmldir='${docdir}/html'
 includedir='${prefix}/include'
 infodir='${datarootdir}/info'
-install_sh='${SHELL} /Users/illusionismine/Desktop/nginx-luajit2/pcre-8.36/install-sh'
+install_sh='${SHELL} /Users/illusionismine/Desktop/nginx-luajit/pcre-8.36/install-sh'
 libdir='${exec_prefix}/lib'
 libexecdir='${exec_prefix}/libexec'
 localedir='${datarootdir}/locale'
