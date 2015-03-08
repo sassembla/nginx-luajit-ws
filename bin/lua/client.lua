@@ -9,7 +9,8 @@ IDENTIFIER_CLIENT = "client"
 -- setup redis pub-sub
 local redis = require "redis.redis"
 local uuid = require "uuid.uuid"
-local json = require "cJSON"
+local json = require "json.json"
+
 
 local serverId = uuid.getUUID()
 
@@ -84,10 +85,9 @@ function connectWebSocket()
 			ngx.log(ngx.INFO, "client ponged")
 
 		elseif typ == "text" then
-			local result = json.tst()
-			ngx.log(ngx.ERR, "res:", result)
-			-- local jsonData = json.encode({connectionId = serverId, data = recv_data})
-			pubRedisCon:publish(IDENTIFIER_CENTRAL, "jsonData")
+			-- post to central.
+			local jsonData = json:encode({connectionId = serverId, data = recv_data})
+			pubRedisCon:publish(IDENTIFIER_CENTRAL, jsonData)
 		end
 	end
 
