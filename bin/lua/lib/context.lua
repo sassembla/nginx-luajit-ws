@@ -6,6 +6,8 @@ local M = {}
 
 connections = {}
 
+count = 0
+
 function M.onConnect(from, publish)
 	ngx.log(ngx.ERR, "connect from:", from)
 end
@@ -26,7 +28,8 @@ function M.onDisconnect(from, reason, publish)
 end
 
 function M.onFrame(publish)
-
+	if count % 100 == 0 then publish("data!:" .. count) end
+	count = count + 1
 end
 
 return M
