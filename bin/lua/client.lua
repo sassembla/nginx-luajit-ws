@@ -107,15 +107,33 @@ function subscribe ()
 			-- end
 
 			-- send message with WebSocket for all subscribers.
-			local bytes, err = wb:send_text(res[3])
+			local decoded = json:decode(res[3])
 
-			if not bytes then
-				ngx.log(ngx.ERR, "failed to send text:", err)
-				return ngx.exit(444)
+			local targetIds = decoded.targets
+			local data = decoded.data
+
+			if not targetIds then
+				local bytes, err = wb:send_text(data)
+				if not bytes then
+					ngx.log(ngx.ERR, "failed to send text 1:", err)
+					return ngx.exit(444)
+				end
+			elseif contains(targetIds, serverId) then
+				local bytes, err = wb:send_text(data)
+				if not bytes then
+					ngx.log(ngx.ERR, "failed to send text 2:", err)
+					return ngx.exit(444)
+				end
 			end
-
 		end
 	end
+end
+
+function contains(tbl, item)
+    for key, value in pairs(tbl) do
+        if value == item then return key end
+    end
+    return false
 end
 
 connectWebSocket()

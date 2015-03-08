@@ -1,5 +1,6 @@
 
 -- どっちにしても、nginx起動時にこのプロセスを開始しておきたい。
+-- あとリセッタが欲しい。なんらか、redisに対してすべての破棄をお願いしたい。
 -- あとredisでのpub-subやめたいな。あの性質、別の方法で実現できないかな。
 
 IDENTIFIER_CENTRAL = "central"
@@ -37,25 +38,28 @@ end
 
 function control (from, data)
 
-	-- do some code here
+	-- do something here.
 
 	ngx.log(ngx.ERR, "from:", from, " data:", data)
 
-	-- 無視、単体に返す、複数に返す、全体に返す、のどれか
-	-- dataとtargets、targets無しで全体、みたいな関数
-	-- ここで最適化してもなあって感じはある。そもデータに入れないでOKなら、っていう選択肢もあるんで。
-	-- データを人数分入れる形式のほうがラクなようなきがするが、シングルトンとかを考えると面倒くさいのか。
-	-- そも全体、受けがわで切る、とかが一番ラクなんだが、その戦略をとるなら無視できる。無駄な通信なのでやりたくはない。
-	-- publishTo(data, from)
-	-- publishTo(data, from, other)
+	-- publish(data, to)
+	-- publish(data, to1, to2, ,,,)
 	-- publish(data)
+
+	publish(data)
 end
 
 
--- function publish (dataSource)
--- 	local data = json.encode({[""]})
--- 	pubRedisCon:publish(IDENTIFIER_CLIENT, data)
--- end
+function publish (dataSource, ...)
+	local targetIds = { ... }
+	if 0 < #targetIds then
+		local packData = json:encode({targets = targetIds, data = dataSource})
+		pubRedisCon:publish(IDENTIFIER_CLIENT, packData)
+		return
+	end
+
+	pubRedisCon:publish(IDENTIFIER_CLIENT, json:encode({data = dataSource}))
+end
 
 
 function main ()
@@ -67,9 +71,9 @@ function main ()
 			ngx.exit(500)
 			return
 		else
-			for i,v in ipairs(res) do
-				ngx.log(ngx.ERR, "central i:", i, " v:", v)
-			end
+			-- for i,v in ipairs(res) do
+			-- 	ngx.log(ngx.ERR, "central i:", i, " v:", v)
+			-- end
 
 			local dataDict = json:decode(res[3])
 			local id = dataDict.connectionId
