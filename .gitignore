@@ -7,3 +7,17 @@ bin/scgi_temp/*
 bin/uwsgi_temp/*
 
 objs/*
+
+pcre-8.36/config.log
+
+pcre-8.36/config.log
+
+pcre-8.36/config.status
+
+pcre-8.36/Makefile
+
+pcre-8.36/.libs/libpcre.a
+
+Makefile
+
+luajit-2.1/lib/pkgconfig/luajit.pc
