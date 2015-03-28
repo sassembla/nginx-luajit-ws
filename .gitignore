@@ -1,10 +1,10 @@
-bin/logs/*
+1.7.10/logs/*
 
-bin/client_body_temp/*
-bin/fastcgi_temp/*
-bin/proxy_temp/*
-bin/scgi_temp/*
-bin/uwsgi_temp/*
+1.7.10/client_body_temp/*
+1.7.10/fastcgi_temp/*
+1.7.10/proxy_temp/*
+1.7.10/scgi_temp/*
+1.7.10/uwsgi_temp/*
 
 objs/*
 
