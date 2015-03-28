@@ -21,3 +21,5 @@ pcre-8.36/.libs/libpcre.a
 Makefile
 
 luajit-2.1/lib/pkgconfig/luajit.pc
+
+zlib/configure.log
