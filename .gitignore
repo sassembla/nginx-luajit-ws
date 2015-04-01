@@ -24,4 +24,3 @@ luajit-2.1/lib/pkgconfig/luajit.pc
 
 zlib/configure.log
 
-zlib/zconf.h
