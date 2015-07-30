@@ -1,5 +1,7 @@
 #nginx-lua-websocket-pubsuber
 
+![SS](/Doc/graph.png)
+
 nginxでluaを使ってWebSocketを受け付け、出来るだけ依存を小さくpub-subとかフレームレート持てるように書いてみたテストベッド。
 
 テストベッド言いたかっただけ。
