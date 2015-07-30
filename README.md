@@ -12,14 +12,15 @@ nginxでluaを使ってWebSocketを受け付け、出来るだけ依存を小さ
 以下、機能特性。
 
 1. WebSocket接続
-2. contextを持ちpub-subが可能(luaでなくても書ける)
-3. contextとWebSocket接続が疎結合なので、接続保ったままcontextの更新が可能(単に別なだけ)
+2. すべての接続がmessageQueueを介して一箇所のcontextに収束
+3. contextはmessageQueueにアクセスできさえすれば要件を満たせる。どんな言語でも環境でも書けるはず
+4. contextとWebSocket接続が疎結合なので、接続保ったままcontextの更新が可能(単に別なだけ)
 
 
 ##requirement & dependency
-* redis 2.8.9 (depends on pub/sub)
+* redis 2.8.9 (depends on pub/sub as messageQueue)
 * this.(contains luajit, pcre, nginx_lua_mod, lua_redis_mod)
-* Mac OS X(only tested on Mac. ha-ha)
+* Only tested on Mac & Linux. ha-ha.
  
  
 ##setup
@@ -40,7 +41,7 @@ nginxでluaを使ってWebSocketを受け付け、出来るだけ依存を小さ
 	
 	this html contains JS which connect to nginx with WebSocket. After connect, then send message to nginx automatically.
 	
-##reload context
+##reload lua context
 
 1. kill current context by reset url
 	
