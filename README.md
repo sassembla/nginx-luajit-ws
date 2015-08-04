@@ -16,6 +16,8 @@ nginxでluaを使ってWebSocketを受け付け、出来るだけ依存を小さ
 3. contextはmessageQueueにアクセスできさえすれば要件を満たせる。どんな言語でも環境でも書けるはず
 4. contextとWebSocket接続が疎結合なので、接続保ったままcontextの更新が可能(単に別なだけ)
 
+#注意点
+luaでUUID降るところでミスってるっぽくてConnectionIdが被るっぽいすまない。
 
 ##requirement & dependency
 * redis 2.8.9 (depends on pub/sub as messageQueue)
