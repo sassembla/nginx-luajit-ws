@@ -8,14 +8,16 @@ STATE_DISCONNECT_1 = "disconnect1"
 STATE_DISCONNECT_2 = "disconnect2"
 
 
--- entrypoint for WebSocket client connecttion.
+-- entrypoint for WebSocket client connection.
 
 
 -- setup redis pub-sub
 local redis = require "redis.redis"
-local uuid = require "uuid.uuid"
 local json = require "json.json"
 
+local uuid = require "uuid.uuid"
+local time = ngx.now() * 1000
+uuid:setRandomSeed(time)
 
 local serverId = uuid.getUUID()
 

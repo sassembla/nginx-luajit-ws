@@ -1,7 +1,6 @@
 local bit = require "bit"
-local uuid = require "uuid.uuid"
 
-local M = {[0] = "websocketProtocol:" .. uuid.getUUID()}
+local M = {[0] = "websocketProtocol"}
 
 local types = {
     [0x0] = "continuation",

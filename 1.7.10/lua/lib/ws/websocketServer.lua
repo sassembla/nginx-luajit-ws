@@ -1,8 +1,7 @@
 local bit = require "bit"
 local protocol = require "ws.websocketProtocol"
-local uuid = require "uuid.uuid"
 
-local M = {[0] = "websocketServer:" .. uuid.getUUID()}
+local M = {[0] = "websocketServer"}
 local mt = { __index = M }
 
 function M.new(self, opts)

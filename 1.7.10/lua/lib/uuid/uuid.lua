@@ -16,13 +16,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 --]]
 
 -- derived from https://github.com/tcjennings/LUA-RFC-4122-UUID-Generator/blob/master/uuid4.lua
+-- modified for use outside value for random seed.
 
-local M = {}
+-- requires milliseconds for uuid. 
 
+-- e.g.
+-- local uuid = require "uuid.uuid"
+-- local seed = ngx.now() * 1000 -- = 1438837974983
+-- uuid:setRandomSeed(seed)
+-- local actual_uuid = uuid:getUUID()
 
-math.randomseed( os.time() )
-math.random()
-
+local _M = {}
+_M._VERSION = '0.5'
 
 local function num2bs(num)
 	local _mod = math.fmod or math.mod
@@ -54,7 +59,7 @@ local function bs2num(num)
 end
 
 
-local function padbits(num,bits)
+local function padbits(num, bits)
 	if #num == bits then return num end
 	if #num > bits then print("too many bits") end
 	local pad = bits - #num
@@ -64,15 +69,17 @@ local function padbits(num,bits)
 	return num
 end
 
+function _M.setRandomSeed(self, seed)
+	math.randomseed(seed)
+	math.random()
+end
 
-local function getUUID()
+function _M.getUUID(self)
 	local _rnd = math.random
 	local _fmt = string.format
 	
-
 	_rnd()
 	
-
 	local time_low_a = _rnd(0, 65535)
 	local time_low_b = _rnd(0, 65535)
 	
@@ -120,5 +127,4 @@ local function getUUID()
 end
 
 
-M.getUUID = getUUID
-return M
+return _M
