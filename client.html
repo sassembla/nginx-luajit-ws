@@ -2,12 +2,22 @@
     <head>
         <script>
             var ws = null;
+
+            function guid() {
+                function s4() {
+                    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+                }
+                return s4() + s4() + '-' + s4() + '-' + "client";
+            }
+
+            var clientId = guid();
+
             function connect() {
                 if (ws !== null) return log('already connected');
                 ws = new WebSocket('ws://127.0.0.1:80/client');
                 ws.onopen = function () {
-                    log('connected');
-                    send("connected! send to server");
+                    log('connected, id:' + clientId);
+                    send("connected from this client:" + clientId + " to server.");
                 };
                 ws.onerror = function (error) {
                     log(error);
@@ -28,9 +38,12 @@
             }
             function send(text) {
                 if (ws === null) return log('please connect first');
-                log('send: ' + text);
+                log('send: ' + text + " from client:" + clientId);
                 ws.send(text);
-
+            }
+            function sendInputted() {
+                var message = document.getElementById('messageInput').value;
+                send(message);
                 return false;
             }
             function log(text) {
@@ -39,20 +52,14 @@
                 document.getElementById('log').appendChild(li);
                 return false;
             }
+            
             window.addEventListener('load', connect, false);
         </script>
     </head>
     <body>
-        <form onsubmit="return send();">
-            <button type="button" onclick="return connect();">
-                Connect
-            </button>
-            <button type="button" onclick="return disconnect();">
-                Disconnect
-            </button>
-            <!-- <input id="text" type="text">
-            <button type="submit">Send</button> -->
-        </form>
+        <input id="messageInput" type="text">
+        <input name="buttonExecute" onclick="sendInputted()" type="button" value="send to gameContext">
+
         <ol id="log"></ol>
     </body>
 </html>

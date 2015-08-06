@@ -1,0 +1,52 @@
+<html>
+    <head>
+        <script>
+            var ws = null;
+            function connect() {
+                if (ws !== null) return log('already connected');
+                ws = new WebSocket('ws://127.0.0.1:80/gameContext');
+                ws.onopen = function () {
+                    log('gameContext added. new gameContext is running on the nginx.');
+                };
+                ws.onerror = function (error) {
+                    log(error);
+                };
+                ws.onmessage = function (e) {
+                    // log('recv: ' + e.data);
+                };
+                ws.onclose = function () {
+                    log('disconnected');
+                    ws = null;
+                };
+                return false;
+            }
+            function disconnect() {
+                if (ws === null) return log('already disconnected');
+                ws.close();
+                return false;
+            }
+            function send(text) {
+                if (ws === null) return log('please connect first');
+                log('send: ' + text);
+                ws.send(text);
+            }
+            function sendInputted() {
+                send("kill");
+                return false;
+            }
+            function log(text) {
+                var li = document.createElement('li');
+                li.appendChild(document.createTextNode(text));
+                document.getElementById('log').appendChild(li);
+                return false;
+            }
+            
+            window.addEventListener('load', connect, false);
+        </script>
+    </head>
+    <body>
+        <input type="submit" value="kill this context" onclick="sendInputted()">
+
+        <ol id="log"></ol>
+    </body>
+</html>

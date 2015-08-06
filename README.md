@@ -16,8 +16,6 @@ nginxでluaを使ってWebSocketを受け付け、出来るだけ依存を小さ
 3. contextはmessageQueueにアクセスできさえすれば要件を満たせる。どんな言語でも環境でも書けるはず
 4. contextとWebSocket接続が疎結合なので、接続保ったままcontextの更新が可能(単に別なだけ)
 
-#注意点
-luaでUUID降るところでミスってるっぽくてConnectionIdが被るっぽいすまない。
 
 ##requirement & dependency
 * redis 2.8.9 (depends on pub/sub as messageQueue)
@@ -26,55 +24,46 @@ luaでUUID降るところでミスってるっぽくてConnectionIdが被るっ�
  
  
 ##setup
+	sh build.sh
+
+##run
 1. start redis
 
-	redis-server /usr/local/etc/redis.conf
-
+		redis-server /usr/local/etc/redis.conf
 
 1. start customized nginx
 	
-	sudo bin/sbin/nginx
+		sudo 1.7.10/sbin/nginx
 	
-1. initial request for nginx
+1. add new gameContext to ngx.
 
-	127.0.0.1:80/controlpoint
+		open addGameContext.html
 	
-1. open testClient.html
-	
-	this html contains JS which connect to nginx with WebSocket. After connect, then send message to nginx automatically.
-	
-##reload lua context
+1. add new client.
 
-1. kill current context by reset url
+		open client.html
 	
-	127.0.0.1:80/reset
-
-1. re request
 	
-	127.0.0.1:80/controlpoint
-
-this structure will keep connection between client to nginx. can reload context only.
 
 ##single context for all websocket connections
 
-context file is bin/lua/lib/context.lua
-
-onFrame method is running 100times/sec.
-
+context file is 1.7.10/lua/gameContext.lua
 
 	--[[]
-		context for all connecting players.
+		game context for all connecting players implemented by lua.
 		you can use local parameters and table(dictionary)s like local application.
 	]]
-	local M = {}
+	local context = {}
 
-	connections = {}
 
-	function M.onConnect(from, publish)
+	local connections = {}
+	local count = 0
+
+	function context.onConnect(from, publish)
 		ngx.log(ngx.ERR, "connect from:", from)
 	end
 
-	function M.onMessage(from, data, publish)
+	function context.onMessage(from, data, publish)
 		-- do something here.
 		ngx.log(ngx.ERR, "message from:", from, " data:", data)
 
@@ -82,16 +71,19 @@ onFrame method is running 100times/sec.
 		-- publish(data, to1, to2, ,,,)
 		-- publish(data)
 
-		publish(data)
+		-- publish(data)
 	end
 
-	function M.onDisconnect(from, reason, publish)
+	function context.onDisconnect(from, reason, publish)
 		ngx.log(ngx.ERR, "disconnect from:", from, " reason:", reason)
 	end
 
-	function M.onFrame(publish)
+	function context.onUpdate(publish)
+		if count % 100 == 0 then 
+			ngx.log(ngx.ERR, "gameContext frame countUp:" .. count)
+			publish("gameContext frame countUp:" .. count)
+		end
 
+		count = count + 1
 	end
-
-	return M
 

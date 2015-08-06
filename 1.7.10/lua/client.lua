@@ -90,7 +90,7 @@ function connectWebSocket()
 			pubRedisCon:publish(IDENTIFIER_CENTRAL, jsonData)
 
 			ngx.log(ngx.ERR, "connection closed:", serverId)
-			break
+			return ngx.exit(200)
 		elseif typ == "ping" then
 			local bytes, err = wb:send_pong()
 			if not bytes then
@@ -152,5 +152,7 @@ function contains(tbl, item)
     end
     return false
 end
+
+ngx.log(ngx.ERR, "client connected, id:", serverId)
 
 connectWebSocket()

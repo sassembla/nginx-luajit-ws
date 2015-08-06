@@ -1,4 +1,5 @@
 # basically these settings are for Mac OS X.
+# you'll need additional settings of zlib for some kind of linux.
 
 PROJECT_PATH=$(pwd)
 
@@ -22,7 +23,7 @@ export LUAJIT_INC=$PROJECT_PATH/$LUAJIT_FOLDER/include/luajit-2.1
 NGX_DEVEL_KIT="ngx_devel_kit-0.2.19"
 LUA_NGX_MOD="lua-nginx-module-0.9.15"
 HTTP_REDIS_MOD="ngx_http_redis-0.3.7"
-ZLIB="zlib"
+# ZLIB="zlib"
 PCRE="pcre-8.36"
 
 # 実行時にlibluajitを特定の位置から呼んでほしいんだが、コンパイル時に下記を指定しても実行時の読み込み箇所が変わらない(usr/local/libを探す)ので、困っている。
@@ -35,7 +36,6 @@ PCRE="pcre-8.36"
 	--add-module=$NGX_DEVEL_KIT \
 	--add-module=$LUA_NGX_MOD \
 	--add-module=$HTTP_REDIS_MOD \
-	--with-zlib=$ZLIB \
 	--with-pcre=$PCRE
 
 make -j2
