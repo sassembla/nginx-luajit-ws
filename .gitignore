@@ -24,3 +24,5 @@ luajit-2.1/lib/pkgconfig/luajit.pc
 
 zlib/configure.log
 
+
+pcre-8.36/.deps/*
