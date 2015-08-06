@@ -23,13 +23,16 @@ nginxでluaを使ってWebSocketを受け付け、出来るだけ依存を小さ
 * Only tested on Mac & Linux. ha-ha.
  
  
-##setup
+##build custom nginx
 	sh build.sh
 
 ##run
+test components are located like below.
+![SS](/Doc/graph2.png)
+
 1. start redis
 
-		redis-server /usr/local/etc/redis.conf
+		redis-server
 
 1. start customized nginx
 	
@@ -43,7 +46,7 @@ nginxでluaを使ってWebSocketを受け付け、出来るだけ依存を小さ
 
 		open client.html
 	
-	
+
 
 ##single context for all websocket connections
 
