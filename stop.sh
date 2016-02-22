@@ -1,0 +1,1 @@
+sudo ./1.9.11/sbin/nginx -s stop

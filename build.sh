@@ -3,7 +3,7 @@
 
 PROJECT_PATH=$(pwd)
 
-NGINX_VERSION=1.7.10
+NGINX_VERSION=1.9.11
 
 # build luajit 2.1 first
 LUAJIT_FOLDER="luajit-2.1"
