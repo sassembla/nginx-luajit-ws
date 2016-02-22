@@ -11,7 +11,7 @@ nginxでluaを使ってWebSocketを受け付け、出来るだけ依存を小さ
 
 以下、機能特性。
 
-1. WebSocket接続
+1. nginx上のluaでClient-ServerをWebSocket接続
 2. すべての接続がmessageQueueを介して一箇所のcontextに収束
 3. contextはmessageQueueにアクセスできさえすれば要件を満たせる。どんな言語でも環境でも書けるはず
 4. contextとWebSocket接続が疎結合なので、接続保ったままcontextの更新が可能(単に別なだけ)
@@ -36,7 +36,7 @@ test components are located like below.
 
 1. start customized nginx
 	
-		sudo 1.7.10/sbin/nginx
+		sudo 1.9.11/sbin/nginx
 	
 1. add new gameContext to ngx.
 
@@ -50,7 +50,7 @@ test components are located like below.
 
 ##single context for all websocket connections
 
-context file is 1.7.10/lua/gameContext.lua
+context file is 1.9.11/lua/gameContext.lua
 
 	--[[]
 		game context for all connecting players implemented by lua.
