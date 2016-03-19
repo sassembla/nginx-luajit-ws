@@ -27,3 +27,5 @@ zlib/configure.log
 
 pcre-8.36/.deps/*
 
+
+1.9.11/logs/error.log
