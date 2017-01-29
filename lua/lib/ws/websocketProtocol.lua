@@ -1,3 +1,5 @@
+-- Copyright (C) Yichun Zhang (agentzh)
+
 local bit = require "bit"
 
 local M = {[0] = "websocketProtocol"}

@@ -15,9 +15,9 @@ STATE_DISCONNECT_ACCIDT = 5
 STATE_DISCONNECT_DISQUE_ACKFAILED = 6
 STATE_DISCONNECT_DISQUE_ACCIDT_SENDFAILED = 7
 
-local playerId = ngx.req.get_headers()["playerId"]
-if not playerId then
-	playerId = "_empty_"
+local the_id = ngx.req.get_headers()["id"]
+if not the_id then
+	the_id = "_empty_"
 end
 
 
@@ -77,10 +77,10 @@ function connectWebSocket()
 	-- start receiving message from context.
 	ngx.thread.spawn(contextReceiving)
 
-	ngx.log(ngx.ERR, "connection:", connectionId, " established. playerId:", playerId, " to context:", IDENTIFIER_CONTEXT)
+	ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", IDENTIFIER_CONTEXT)
 
 	-- send connected to gameContext.
-	local data = STATE_CONNECT..connectionId..playerId
+	local data = STATE_CONNECT..connectionId..the_id
 	addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
 
 	-- start websocket serving.
@@ -89,7 +89,7 @@ function connectWebSocket()
 
 		if ws.fatal then
 			ngx.log(ngx.ERR, "connection:", connectionId, " closing accidentially. ", err)
-			local data = STATE_DISCONNECT_ACCIDT..connectionId..playerId
+			local data = STATE_DISCONNECT_ACCIDT..connectionId..the_id
 			addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
 			break
 		end
@@ -101,14 +101,13 @@ function connectWebSocket()
 
 		if typ == "close" then
 			ngx.log(ngx.ERR, "connection:", connectionId, " closing intentionally.")
-			local data = STATE_DISCONNECT_INTENT..connectionId..playerId
+			local data = STATE_DISCONNECT_INTENT..connectionId..the_id
 			addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
 			
 			-- start close.
 			break
 		elseif typ == "ping" then
-			ngx.log(ngx.ERR, "connection:", serverId, " ping received.なので、データを送り返す。")
-			local bytes, err = ws:send_pong()
+			local bytes, err = ws:send_pong(recv_data)
 			-- ngx.log(ngx.ERR, "connection:", serverId, " ping received.")
 			if not bytes then
 				ngx.log(ngx.ERR, "connection:", serverId, " failed to send pong: ", err)
@@ -159,7 +158,7 @@ function contextReceiving ()
 			local ackRes, ackErr = receiveJobConn:fastack(messageId)
 			if not ackRes then
 				ngx.log(ngx.ERR, "disque, ackに失敗したケース connection:", connectionId, " ackErr:", ackErr)				
-				local data = STATE_DISCONNECT_DISQUE_ACKFAILED..connectionId..playerId
+				local data = STATE_DISCONNECT_DISQUE_ACKFAILED..connectionId..the_id
 				addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
 				break
 			end

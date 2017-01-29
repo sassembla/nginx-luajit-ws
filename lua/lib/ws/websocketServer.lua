@@ -1,3 +1,5 @@
+-- Copyright (C) Yichun Zhang (agentzh)
+
 local sha1 = require 'sha1.sha1'
 local bit = require "bit"
 local protocol = require "ws.websocketProtocol"

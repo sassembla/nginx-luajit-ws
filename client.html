@@ -14,7 +14,7 @@
 
             function connect() {
                 if (ws !== null) return log('already connected');
-                ws = new WebSocket('ws://127.0.0.1:80/client');
+                ws = new WebSocket('ws://127.0.0.1:8080/sample_disque_client');
                 ws.onopen = function () {
                     log('connected, id:' + clientId);
                     send("connected from this client:" + clientId + " to server.");

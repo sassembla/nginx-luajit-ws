@@ -1,1 +1,0 @@
-sudo ./1.11.2/sbin/nginx
