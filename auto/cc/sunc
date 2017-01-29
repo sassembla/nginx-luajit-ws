@@ -57,6 +57,9 @@ case "$NGX_MACHINE" in
 
 esac
 
+MAIN_LINK=
+MODULE_LINK="-G"
+
 
 # optimizations
 
@@ -140,10 +143,6 @@ CFLAGS="$CFLAGS $CPU_OPT"
 
 if [ ".$PCRE_OPT" = "." ]; then
     PCRE_OPT="$ngx_fast $IPO $CPU_OPT"
-fi
-
-if [ ".$MD5_OPT" = "." ]; then
-    MD5_OPT="$ngx_fast $IPO $CPU_OPT"
 fi
 
 if [ ".$ZLIB_OPT" = "." ]; then

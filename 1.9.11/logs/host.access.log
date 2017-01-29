@@ -1,7 +1,0 @@
-127.0.0.1 - - [22/Feb/2016:17:02:10 +0900] "GET /gameContext HTTP/1.1" 500 193 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4"
-127.0.0.1 - - [22/Feb/2016:17:02:16 +0900] "GET /gameContext HTTP/1.1" 500 193 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4"
-127.0.0.1 - - [22/Feb/2016:17:03:20 +0900] "GET /gameContext HTTP/1.1" 500 193 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4"
-127.0.0.1 - - [22/Feb/2016:17:09:34 +0900] "GET /client HTTP/1.1" 101 316 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4"
-127.0.0.1 - - [22/Feb/2016:17:09:34 +0900] "GET /client HTTP/1.1" 101 504 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4"
-127.0.0.1 - - [22/Feb/2016:17:09:35 +0900] "GET /client HTTP/1.1" 101 820 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4"
-127.0.0.1 - - [22/Feb/2016:17:09:36 +0900] "GET /gameContext HTTP/1.1" 101 0 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/601.4.4 (KHTML, like Gecko) Version/9.0.3 Safari/601.4.4"

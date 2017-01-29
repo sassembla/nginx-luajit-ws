@@ -1,1 +1,1 @@
-sudo ./1.9.11/sbin/nginx
+sudo ./1.11.2/sbin/nginx
