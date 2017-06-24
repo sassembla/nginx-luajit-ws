@@ -21,7 +21,7 @@ RUN wget 'http://luajit.org/download/LuaJIT-2.1.0-beta2.tar.gz' && tar -xzvf Lua
 RUN mkdir nginx-1.11.9/dependencies && cd nginx-1.11.9/dependencies && wget 'https://github.com/simpl/ngx_devel_kit/archive/v0.3.0.zip' && unzip v0.3.0.zip && rm v0.3.0.zip && wget 'https://github.com/openresty/lua-nginx-module/archive/v0.10.7.zip' && unzip v0.10.7.zip && rm v0.10.7.zip
 
 # add shell.
-COPY ./build.sh nginx-1.11.9/build.sh
+COPY ./DockerResources/build.sh nginx-1.11.9/build.sh
 
 # build nginx.
 RUN cd nginx-1.11.9 && sh build.sh
@@ -32,10 +32,10 @@ RUN wget https://github.com/antirez/disque/archive/master.zip && unzip master.zi
 
 # add lua sources.
 RUN mkdir nginx-1.11.9/1.11.9/lua && ls -l
-COPY ./lua nginx-1.11.9/1.11.9/lua
+COPY ./DockerResources/lua nginx-1.11.9/1.11.9/lua
 
 # overwrite nginx conf.
-COPY ./nginx.conf nginx-1.11.9/1.11.9/conf/
+COPY ./DockerResources/nginx.conf nginx-1.11.9/1.11.9/conf/
 
 
 # run nginx & disque-server.
