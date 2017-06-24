@@ -14,13 +14,13 @@ nginxでluaを使ってWebSocketを受け付ける。
 # Build image
 
 ```shellscript
-docker build -f dockerfile .
+docker build -f ubuntu.dockerfile -t nginx-luajit-ubuntu .
 ```
 
 # Create container from image
 
 ```shellscript
-docker run -ti -d --name nginx_luajit -p 8080:80 -v $(pwd)/logs:/nginx-1.11.9/1.11.9/logs CONTAINER_ID
+docker run -ti -d --name nginx_luajit -p 8080:80 -v $(pwd)/logs:/nginx-1.11.9/1.11.9/logs nginx-luajit-ubuntu
 ```
 
 # Connect to connnection server
