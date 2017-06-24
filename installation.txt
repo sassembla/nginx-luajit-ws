@@ -80,6 +80,7 @@ make -j2
 make install
 # ————————————————————
 	
+
 	move dependencies to nginx folder
 		mkdir dependencies
 		
