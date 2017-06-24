@@ -5,8 +5,6 @@ local identity = string.gsub (ngx.var.uri, "/", "")
 IDENTIFIER_CONTEXT = identity .. "_context"
 
 
--- identifier-client = UUID. e.g. AD112CD4-3A23-4E49-B562-E07A360DD836 len is 36.
-
 STATE_CONNECT			= 1
 STATE_STRING_MESSAGE	= 2
 STATE_BINARY_MESSAGE	= 3
@@ -25,19 +23,13 @@ ip = "127.0.0.1"-- localhost.
 port = 7711
 
 
--- このへんで、サーバに問い合わせるみたいなのができる。authかけるならここ。かけないと、解析で赤の他人が接続することが可能。必ずRedisとかにhash化されたキーを入れておいて、合わさせること。
-
 -- entrypoint for WebSocket client connection.
-
 
 -- setup Disque get-add
 local disque = require "disque.disque"
 
-local uuid = require "uuid.uuid"
-local time = ngx.now() * 1000 --millisecond,, should add other parameter. -> playerRandom?
-uuid:setRandomSeed(time)
-
-local connectionId = uuid:getUUID()
+-- connectionId is nginx's request id. that len is 32 + 4.
+local connectionId = ngx.var.request_id .. "0000"
 
 receiveJobConn = disque:new()
 local ok, err = receiveJobConn:connect(ip, port)
