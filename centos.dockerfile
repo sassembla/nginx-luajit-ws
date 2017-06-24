@@ -40,7 +40,3 @@ COPY ./nginx.conf nginx-1.11.9/1.11.9/conf/
 
 # run nginx & disque-server.
 ENTRYPOINT /nginx-1.11.9/1.11.9/sbin/nginx && /disque-master/src/disque-server
-
-# use "docker run -ti -d --name nginx_luajit -p 8080:80 YOUR_DOCKER_IMAGE_ID" for running image.
-
-
