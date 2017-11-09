@@ -18,6 +18,18 @@ if not the_id then
 	the_id = "_empty_"
 end
 
+local debug_port = ngx.req.get_headers()["debugport"]
+if not debug_port then
+	-- debugport指定がない場合、通信元をターゲットとしてudp通信を行う。 公式の通信では禁止すべき。
+	debug_port = ngx.var.remote_addr
+end
+
+local udpsock = ngx.socket.udp()
+
+ok, err = udpsock:setpeername(debug_port, 7777)
+ngx.log(ngx.ERR, "udpsock ok:", ok, " err:", err, " debug_port:", debug_port)
+
+
 
 ip = "127.0.0.1"-- localhost.
 port = 7711
@@ -160,6 +172,7 @@ function contextReceiving ()
 			-- 入れる側にもなんかデータ接続が出ちゃうんだなあ。うーん、、まあでもサーバ側なんでいいや。CopyがN回増えるだけだ。
 			-- 残る課題は、ここでヘッダを見る、ってことだね。
 
+			-- split data with continuation frame if need.
 			if (localMaxLen < #sendingData) then
 				local count = math.floor(#sendingData / localMaxLen)
 				local rest = #sendingData % localMaxLen
@@ -198,6 +211,12 @@ function contextReceiving ()
 				end
 
 			else
+				do
+					local ok, err = udpsock:send(sendingData)
+					ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
+				end
+
+
 				-- send data to client
 				local bytes, err = localWs:send_binary(sendingData)
 
