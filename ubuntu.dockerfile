@@ -1,9 +1,9 @@
 FROM ubuntu
 
-ENV NGINX_VERSION 1.11.9
+ENV NGINX_VERSION 1.13.6
 ENV LUAJIT_VERSION 2.1.0-beta2
 ENV NGINX_DEVEL_KIT_VERSION v0.3.0
-ENV NGINX_LUAJIT_VERSION v0.10.7
+ENV NGINX_LUAJIT_VERSION v0.10.11
 
 # ready tools.
 RUN apt-get update && apt-get install -y \
@@ -44,6 +44,9 @@ COPY ./DockerResources/lua nginx-$NGINX_VERSION/$NGINX_VERSION/lua
 # overwrite nginx conf.
 COPY ./DockerResources/nginx.conf nginx-$NGINX_VERSION/$NGINX_VERSION/conf/
 
+
+# このへんでudpサーバ立ち上げるか。8000あたりで。
+RUN apt-get install -y netcat
 
 # run nginx & disque-server.
 ENTRYPOINT /nginx-$NGINX_VERSION/$NGINX_VERSION/sbin/nginx && /disque-master/src/disque-server

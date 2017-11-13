@@ -24,10 +24,10 @@ if not debug_port then
 	debug_port = ngx.var.remote_addr
 end
 
-local udpsock = ngx.socket.udp()
+-- local udpsock = ngx.socket.udp()
 
-ok, err = udpsock:setpeername(debug_port, 7777)
-ngx.log(ngx.ERR, "udpsock ok:", ok, " err:", err, " debug_port:", debug_port)
+-- ok, err = udpsock:setpeername(debug_port, 7777)
+-- ngx.log(ngx.ERR, "udpsock ok:", ok, " err:", err, " debug_port:", debug_port)
 
 
 
@@ -75,13 +75,13 @@ if not ws then
 	return
 end
 
-ngx.log(ngx.ERR, "connection:", connectionId, " start connect.")
+-- ngx.log(ngx.ERR, "connection:", connectionId, " start connect.")
 
 function connectWebSocket()
 	-- start receiving message from context.
 	ngx.thread.spawn(contextReceiving)
 
-	ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", IDENTIFIER_CONTEXT)
+	-- ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", IDENTIFIER_CONTEXT)
 
 	-- send connected to gameContext.
 	local data = STATE_CONNECT..connectionId..the_id
@@ -211,10 +211,10 @@ function contextReceiving ()
 				end
 
 			else
-				do
-					local ok, err = udpsock:send(sendingData)
-					ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
-				end
+				-- do
+				-- 	local ok, err = udpsock:send(sendingData)
+				-- 	ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
+				-- end
 
 
 				-- send data to client
