@@ -46,12 +46,13 @@ RUN wget https://github.com/antirez/disque/archive/master.zip && unzip master.zi
 RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/lua && ls -l
 COPY ./DockerResources/lua nginx-$NGINX_VERSION/$NGINX_VERSION/lua
 
+
+# add js sources.
+RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/js && ls -l
+COPY ./DockerResources/js nginx-$NGINX_VERSION/$NGINX_VERSION/js
+
 # overwrite nginx conf.
 COPY ./DockerResources/nginx.conf nginx-$NGINX_VERSION/$NGINX_VERSION/conf/
-
-
-# このへんでudpサーバ立ち上げるか。8000あたりで。
-RUN apt-get install -y netcat
 
 # run nginx & disque-server.
 ENTRYPOINT /nginx-$NGINX_VERSION/$NGINX_VERSION/sbin/nginx && /disque-master/src/disque-server
