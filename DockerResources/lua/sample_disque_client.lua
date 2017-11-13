@@ -75,13 +75,13 @@ if not ws then
 	return
 end
 
--- ngx.log(ngx.ERR, "connection:", connectionId, " start connect.")
+ngx.log(ngx.ERR, "connection:", connectionId, " start connect.")
 
 function connectWebSocket()
 	-- start receiving message from context.
 	ngx.thread.spawn(contextReceiving)
 
-	-- ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", IDENTIFIER_CONTEXT)
+	ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", IDENTIFIER_CONTEXT)
 
 	-- send connected to gameContext.
 	local data = STATE_CONNECT..connectionId..the_id
