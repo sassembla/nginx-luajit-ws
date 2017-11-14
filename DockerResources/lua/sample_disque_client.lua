@@ -18,18 +18,29 @@ if not the_id then
 	the_id = "_empty_"
 end
 
+local debug_addr = ngx.req.get_headers()["debugaddr"]
+if not debug_addr then
+	-- docker内だとこのipは172で固定されてるような気がする。
+	debug_addr = ngx.var.remote_addr
+end
+
+
 local debug_port = ngx.req.get_headers()["debugport"]
 if not debug_port then
 	-- debugport指定がない場合、通信元をターゲットとしてudp通信を行う。 公式の通信では禁止すべき。
-	debug_port = ngx.var.remote_addr
+	debug_port = ngx.var.remote_port
 end
 
--- local udpsock = ngx.socket.udp()
+local udpsock = ngx.socket.udp()
 
--- ok, err = udpsock:setpeername(debug_port, 7777)
--- ngx.log(ngx.ERR, "udpsock ok:", ok, " err:", err, " debug_port:", debug_port)
+ok, err = udpsock:setpeername(debug_addr, debug_port)
+ngx.log(ngx.ERR, "udpsock ok:", ok, " err:", err, " debug_addr:", debug_addr, " debug_port:", debug_port)
 
 
+do
+	local ok, err = udpsock:send("sendingData")
+	ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
+end
 
 ip = "127.0.0.1"-- localhost.
 port = 7711
@@ -211,10 +222,10 @@ function contextReceiving ()
 				end
 
 			else
-				-- do
-				-- 	local ok, err = udpsock:send(sendingData)
-				-- 	ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
-				-- end
+				do
+					local ok, err = udpsock:send(sendingData)
+					ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
+				end
 
 
 				-- send data to client
