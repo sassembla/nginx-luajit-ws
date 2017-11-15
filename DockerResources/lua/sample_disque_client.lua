@@ -31,16 +31,27 @@ if not debug_port then
 	debug_port = ngx.var.remote_port
 end
 
-local udpsock = ngx.socket.udp()
-
-ok, err = udpsock:setpeername(debug_addr, debug_port)
-ngx.log(ngx.ERR, "udpsock ok:", ok, " err:", err, " debug_addr:", debug_addr, " debug_port:", debug_port)
+--local udpsock = ngx.socket.udp()
+--ok, err = udpsock:setpeername(debug_addr, ngx.var.remote_port)
+--ok, err = udpsock:setsockname(debug_addr, ngx.var.remote_port)
 
 
 do
-	local ok, err = udpsock:send("sendingData")
-	ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
+        local udpsock = ngx.socket.udp()
+        ok, err = udpsock:setpeername(debug_addr, debug_port)
+
+        ngx.log(ngx.ERR, "udpsock ok:", ok, " err:", err, " debug_addr:", debug_addr, " debug_port:", debug_port, " ngx.var.remote_addr:", ngx.var.remote_addr, " ngx.var.remote_port:", ngx.var.remote_port)
+        -- sendtoはない。
+        local ok, err = udpsock:send("testdata7777-2")
+        ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
+	--udpsock.close()
 end
+
+
+
+--local data, err = udpsock:receive()
+--ngx.log(ngx.ERR, "udp data:", data, " err:", err)
+
 
 ip = "127.0.0.1"-- localhost.
 port = 7711
@@ -259,8 +270,3 @@ connectWebSocket()
 -- それが解消したらできそうかな？できそうだな。
 -- パラメータを保持させて、か、、まあ親のインスタンスのパラメータに触れるのはしんどいんで、やっぱりluaだと厳しいねっていう話になるのがいい気がする。
 -- 本当にあると嬉しいのは、TCP以外が喋れる、フロントになれるメッセージキューか。まあErlangにはあるんだけどな。
-
-
-
-
-
