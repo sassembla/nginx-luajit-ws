@@ -18,41 +18,26 @@ if not the_id then
 	the_id = "_empty_"
 end
 
-local debug_addr = ngx.req.get_headers()["debugaddr"]
-if not debug_addr then
-	-- docker内だとこのipは172で固定されてるような気がする。
-	debug_addr = ngx.var.remote_addr
-end
 
-
+-- receive udp port.
 local debug_port = ngx.req.get_headers()["debugport"]
 if not debug_port then
-	-- debugport指定がない場合、通信元をターゲットとしてudp通信を行う。 公式の通信では禁止すべき。
 	debug_port = ngx.var.remote_port
 end
 
---local udpsock = ngx.socket.udp()
---ok, err = udpsock:setpeername(debug_addr, ngx.var.remote_port)
---ok, err = udpsock:setsockname(debug_addr, ngx.var.remote_port)
+
+--ポート情報だけは、udpで一度サーバまで到達した時のポート情報が必要になるので、公共回線では必須になる。
+-- この情報を別にクライアント経由で送ってもらわないでも、一度目のudpの時にredisとかに入れとくとかできればいい感じにはなるだろうが、
+-- 結局ユーザーidみたいなのをudpでサーバに送らないといけないんで、微妙。だったら接続時でよくない？という感じ。
+-- portだけ送る + 送信者がws接続者と同一でないといけない + サーバ側で計算してるという状態なのでたぶんチートできない。
 
 
-do
-        local udpsock = ngx.socket.udp()
-        ok, err = udpsock:setpeername(debug_addr, debug_port)
-
-        ngx.log(ngx.ERR, "udpsock ok:", ok, " err:", err, " debug_addr:", debug_addr, " debug_port:", debug_port, " ngx.var.remote_addr:", ngx.var.remote_addr, " ngx.var.remote_port:", ngx.var.remote_port)
-        -- sendtoはない。
-        local ok, err = udpsock:send("testdata7777-2")
-        ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
-	--udpsock.close()
-end
+-- setup udp socket.
+local udpsock = ngx.socket.udp()
+udpsock:setpeername(ngx.var.remote_addr, debug_port)
 
 
-
---local data, err = udpsock:receive()
---ngx.log(ngx.ERR, "udp data:", data, " err:", err)
-
-
+-- disque setting.
 ip = "127.0.0.1"-- localhost.
 port = 7711
 
@@ -108,7 +93,9 @@ function connectWebSocket()
 	-- send connected to gameContext.
 	local data = STATE_CONNECT..connectionId..the_id
 	addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
-
+	
+	udpsock:send("ws connected.")
+	
 	-- start websocket serving.
 	while true do
 		local recv_data, typ, err = ws:recv_frame()
@@ -136,6 +123,7 @@ function connectWebSocket()
 			local bytes, err = ws:send_pong(recv_data)
 			-- ngx.log(ngx.ERR, "connection:", serverId, " ping received.")
 			if not bytes then
+
 				ngx.log(ngx.ERR, "connection:", serverId, " failed to send pong: ", err)
 				break
 			end
@@ -147,6 +135,7 @@ function connectWebSocket()
 			-- post message to central.
 			local data = STATE_STRING_MESSAGE..connectionId..recv_data
 			addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
+
 		elseif typ == "binary" then
 			-- post binary data to central.
 			local binData = STATE_BINARY_MESSAGE..connectionId..recv_data
@@ -233,12 +222,14 @@ function contextReceiving ()
 				end
 
 			else
+
+				-- udpsockでデータを送るの、失敗しても何も起きないんで、以下しっぱなしにするかどうかのチェックが大変そう。
 				do
 					local ok, err = udpsock:send(sendingData)
-					ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
+					--ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
 				end
-
-
+				
+			
 				-- send data to client
 				local bytes, err = localWs:send_binary(sendingData)
 
@@ -257,16 +248,3 @@ function contextReceiving ()
 end
 
 connectWebSocket()
-
-
--- 別の話、ここに受け入れバッファを持つことは可能か
-
--- -> なんか切断時コンテキスト混同イレギュラーがあったんだよな〜〜あれの原因探さないとなー
--- 何が起きていたかっていうと、切断確認が別のクライアントのものをつかんでいた、っていうやつで、
--- 受け取り時にコネクション状態を見るとおかしくなっている、ていうやつ。
--- 、、、コネクション状態に関して見るフラッグをngx.thread内で扱ってはいけない、みたいなのがありそう。
--- ということは、それ以外であれば混同しないのでは。
-
--- それが解消したらできそうかな？できそうだな。
--- パラメータを保持させて、か、、まあ親のインスタンスのパラメータに触れるのはしんどいんで、やっぱりluaだと厳しいねっていう話になるのがいい気がする。
--- 本当にあると嬉しいのは、TCP以外が喋れる、フロントになれるメッセージキューか。まあErlangにはあるんだけどな。
