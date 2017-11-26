@@ -250,7 +250,6 @@ Nginx Compatibility
 The latest version of this module is compatible with the following versions of Nginx:
 
 * 1.13.x  (last tested: 1.13.6)
-* 1.12.x
 * 1.11.x  (last tested: 1.11.2)
 * 1.10.x
 * 1.9.x (last tested: 1.9.15)
@@ -1487,8 +1486,6 @@ This hook is often used to create per-worker reoccurring timers (via the [ngx.ti
 
 This directive was first introduced in the `v0.9.5` release.
 
-This hook no longer runs in the cache manager and cache loader processes since the `v0.10.12` release.
-
 [Back to TOC](#directives)
 
 init_worker_by_lua_block
@@ -1516,8 +1513,6 @@ For instance,
 
 This directive was first introduced in the `v0.9.17` release.
 
-This hook no longer runs in the cache manager and cache loader processes since the `v0.10.12` release.
-
 [Back to TOC](#directives)
 
 init_worker_by_lua_file
@@ -1532,8 +1527,6 @@ init_worker_by_lua_file
 Similar to [init_worker_by_lua](#init_worker_by_lua), but accepts the file path to a Lua source file or Lua bytecode file.
 
 This directive was first introduced in the `v0.9.5` release.
-
-This hook no longer runs in the cache manager and cache loader processes since the `v0.10.12` release.
 
 [Back to TOC](#directives)
 

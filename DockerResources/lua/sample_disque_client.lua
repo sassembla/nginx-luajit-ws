@@ -32,11 +32,11 @@ end
 -- portだけ送る + 送信者がws接続者と同一でないといけない + サーバ側で計算してるという状態なのでたぶんチートできない。
 
 
-ngx.log(ngx.ERR, "ready udp")
+ngx.log(ngx.ERR, "ready udp:", debug_port)
 
 -- setup udp socket.
 local udpsock = ngx.socket.udp()
-udpsock:setpeername(ngx.var.remote_addr, debug_port)-- ここに、通信先ポートだけではなく、送信元ポートの指定ができればいいはず。
+udpsock:setpeername(ngx.var.remote_addr, debug_port)
 
 ngx.log(ngx.ERR, "ready udp done.")
 

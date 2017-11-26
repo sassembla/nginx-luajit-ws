@@ -219,7 +219,7 @@ ngx_http_lua_socket_udp_setpeername(lua_State *L)
     host.data[len] = '\0';
 
     if (n == 3) {
-        port = luaL_checkinteger(L, 3);
+        port = luaL_checkinteger(L, 3);// ポートの取得を引数から実行してる。
 
         if (port < 0 || port > 65536) {
             lua_pushnil(L);
@@ -297,8 +297,9 @@ ngx_http_lua_socket_udp_setpeername(lua_State *L)
 
 
 
-    // ちょっとデバッグを可能にしてみるか。
+    // ちょっとデバッグを可能にしてみるか。->できた、エラーが出る。値を知ることはできるんだけど、うーん？
     luaL_error(L, "here comes");
+    // ngx_log_debug0(NGX_LOG_DEBUG_HTTP, log, 0, "here comes");// これだとどこに出るんだろ、なんか定義が必要っぽいな。ファイルライタでも書くか。
 
 
     // このへんでurl構造体にポート情報をセットしている。ngx_sendで最後送り出しているのは維持した方がいいのかな。ノンブロッキングなのでその方が楽だと思うんだよな。
@@ -307,7 +308,7 @@ ngx_http_lua_socket_udp_setpeername(lua_State *L)
 
     url.url.len = host.len;
     url.url.data = host.data;
-    url.default_port = (in_port_t) port;
+    url.default_port = (in_port_t) port;// ここでポートがセットされてる。ターゲットだけっぽい。
     url.no_resolve = 1;
 
     if (ngx_parse_url(r->pool, &url) != NGX_OK) {
@@ -340,7 +341,7 @@ ngx_http_lua_socket_udp_setpeername(lua_State *L)
 
     } else {
         u->resolved->host = host;
-        u->resolved->port = (in_port_t) port;
+        u->resolved->port = (in_port_t) port;// ここでもポートがセットされてる、これもターゲットかな？
     }
 
     if (u->resolved->sockaddr) {
