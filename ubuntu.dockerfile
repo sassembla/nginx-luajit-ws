@@ -4,7 +4,6 @@ ENV NGINX_VERSION 1.13.6
 ENV LUAJIT_VERSION 2.1.0-beta2
 ENV NGINX_DEVEL_KIT_VERSION v0.3.0
 ENV NGINX_LUAJIT_VERSION v0.10.11
-ENV NJS_VERSION 0.1.14
 
 
 # ready tools.
@@ -24,12 +23,14 @@ RUN wget http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz && tar -xzvf ngin
 # add luajit module.
 RUN wget http://luajit.org/download/LuaJIT-$LUAJIT_VERSION.tar.gz && tar -xzvf LuaJIT-$LUAJIT_VERSION.tar.gz && rm LuaJIT-$LUAJIT_VERSION.tar.gz && cd LuaJIT-$LUAJIT_VERSION/ && make && make install
 
-
 # add nginx tools, lua module and njs module.
 RUN mkdir nginx-$NGINX_VERSION/dependencies && cd nginx-$NGINX_VERSION/dependencies && \
-	wget https://github.com/simpl/ngx_devel_kit/archive/$NGINX_DEVEL_KIT_VERSION.zip && unzip $NGINX_DEVEL_KIT_VERSION.zip && rm $NGINX_DEVEL_KIT_VERSION.zip && \
-	wget https://github.com/openresty/lua-nginx-module/archive/$NGINX_LUAJIT_VERSION.zip && unzip $NGINX_LUAJIT_VERSION.zip && rm $NGINX_LUAJIT_VERSION.zip && \
-  wget https://github.com/nginx/njs/archive/$NJS_VERSION.zip && unzip $NJS_VERSION.zip && rm $NJS_VERSION.zip
+	wget https://github.com/simpl/ngx_devel_kit/archive/$NGINX_DEVEL_KIT_VERSION.zip && unzip $NGINX_DEVEL_KIT_VERSION.zip && rm $NGINX_DEVEL_KIT_VERSION.zip
+	# wget https://github.com/openresty/lua-nginx-module/archive/$NGINX_LUAJIT_VERSION.zip && unzip $NGINX_LUAJIT_VERSION.zip && rm $NGINX_LUAJIT_VERSION.zip && \
+
+# 手元のやつを使うようにしよう。
+COPY ./DockerResources/lua-nginx-module-0.10.11 /nginx-$NGINX_VERSION/dependencies/lua-nginx-module-0.10.11
+# RUN pwd && ls -l && cd lua-nginx-module-0.10.11 && ls -l
 
 
 # add shell.
@@ -47,9 +48,9 @@ RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/lua && ls -l
 COPY ./DockerResources/lua nginx-$NGINX_VERSION/$NGINX_VERSION/lua
 
 
-# add js sources.
-RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/js && ls -l
-COPY ./DockerResources/js nginx-$NGINX_VERSION/$NGINX_VERSION/js
+# # add js sources.
+# RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/js && ls -l
+# COPY ./DockerResources/js nginx-$NGINX_VERSION/$NGINX_VERSION/js
 
 # overwrite nginx conf.
 COPY ./DockerResources/nginx.conf nginx-$NGINX_VERSION/$NGINX_VERSION/conf/
