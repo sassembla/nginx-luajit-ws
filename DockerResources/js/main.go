@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"fmt"
 	"net"
 	"os"
@@ -56,10 +57,6 @@ func main() {
 
 	// 適当な無限ループ
 	for {
-
-		// ここで、addrがグローバルなip + ポート番号になってるはず。aws上で追試したいね。
-
-
 		n, addr, err := ServerConn.ReadFromUDP(buf)
 
 		fmt.Printf("received: %s from: %s\n", string(buf[0:n]), addr)
@@ -72,6 +69,9 @@ func main() {
 		    panic(err)
 		}
 
-		ServerConn.WriteTo(buf[0:n], addr)
+		portStr := strconv.Itoa(addr.Port)
+
+		// ポート番号を返す。
+		ServerConn.WriteTo([]byte(portStr), addr)
 	}
 }

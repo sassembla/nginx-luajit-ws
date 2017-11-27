@@ -1009,7 +1009,12 @@ ngx_http_lua_socket_udp_receive(lua_State *L)
         u->ft_type = 0;
     }
 
+    fprintf(stderr, "ngx_http_lua_socket_udp_receive開始。\n");
+
+
+
 #if 1
+    fprintf(stderr, "if 1。\n");
     if (u->waiting) {
         lua_pushnil(L);
         lua_pushliteral(L, "socket busy");
@@ -1017,6 +1022,7 @@ ngx_http_lua_socket_udp_receive(lua_State *L)
     }
 #endif
 
+    fprintf(stderr, "続き。\n");
     ngx_log_debug1(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                    "lua udp socket read timeout: %M", u->read_timeout);
 
@@ -1079,6 +1085,9 @@ static int
 ngx_http_lua_socket_udp_receive_retval_handler(ngx_http_request_t *r,
     ngx_http_lua_socket_udp_upstream_t *u, lua_State *L)
 {
+
+    fprintf(stderr, "ngx_http_lua_socket_udp_receive_retval_handlerに来た\n");
+
     ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                    "lua udp socket receive return value handler");
 

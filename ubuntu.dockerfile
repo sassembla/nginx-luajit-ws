@@ -38,6 +38,9 @@ RUN mkdir nginx-$NGINX_VERSION/dependencies && cd nginx-$NGINX_VERSION/dependenc
 # add shell.
 COPY ./DockerResources/build.sh nginx-$NGINX_VERSION/build.sh
 
+# テスト用に自前のものを使う
+COPY ./DockerResources/lua-nginx-module-0.10.11 /nginx-$NGINX_VERSION/dependencies/lua-nginx-module-0.10.11
+
 # build nginx.
 RUN cd nginx-$NGINX_VERSION && sh build.sh
 
@@ -57,4 +60,4 @@ COPY ./DockerResources/nginx.conf nginx-$NGINX_VERSION/$NGINX_VERSION/conf/
 
 
 # run nginx & disque-server.
-ENTRYPOINT /nginx-$NGINX_VERSION/$NGINX_VERSION/sbin/nginx && /disque-master/src/disque-server
+ENTRYPOINT /nginx-$NGINX_VERSION/$NGINX_VERSION/sbin/nginx && go build -o /nginx-$NGINX_VERSION/$NGINX_VERSION/js/go-udp-server /nginx-$NGINX_VERSION/$NGINX_VERSION/js/main.go && /disque-master/src/disque-server
