@@ -20,25 +20,24 @@ end
 
 
 -- receive udp port.
+-- クライアントがudpを送って来たポートを事前に受け取っておいて、
 local debug_port = ngx.req.get_headers()["debugport"]
 if not debug_port then
 	debug_port = ngx.var.remote_port
 end
 
 
---ポート情報だけは、udpで一度サーバまで到達した時のポート情報が必要になるので、公共回線では必須になる。
--- この情報を別にクライアント経由で送ってもらわないでも、一度目のudpの時にredisとかに入れとくとかできればいい感じにはなるだろうが、
--- 結局ユーザーidみたいなのをudpでサーバに送らないといけないんで、微妙。だったら接続時でよくない？という感じ。
--- portだけ送る + 送信者がws接続者と同一でないといけない + サーバ側で計算してるという状態なのでたぶんチートできない。
-
-
-ngx.log(ngx.ERR, "ready udp:", debug_port)
+ngx.log(ngx.ERR, "ready udp:", debug_port, " ngx.var.port:", ngx.var.port)
 
 -- setup udp socket.
 local udpsock = ngx.socket.udp()
 udpsock:setpeername(ngx.var.remote_addr, debug_port)
 
 ngx.log(ngx.ERR, "ready udp done.")
+
+
+udpsock:send("dummy")
+
 
 -- disque setting.
 ip = "127.0.0.1"-- localhost.
@@ -64,6 +63,11 @@ receiveJobConn:set_timeout(1000 * 60 * 60)
 
 
 addJobCon = disque:new()
+
+-- addJobConのメタテーブルにsockがあるのでは-> あった。で、ポートを表すパラメータはあるんだろうか。ngx.socket.tcp
+-- ngx.log(ngx.ERR, "addJobCon:", addJobCon.sock)
+
+
 local ok, err = addJobCon:connect(ip, port)
 if not ok then
 	ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate addJob client")
@@ -96,8 +100,6 @@ function connectWebSocket()
 	-- send connected to gameContext.
 	local data = STATE_CONNECT..connectionId..the_id
 	addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
-	
-	udpsock:send("ws connected.")
 	
 	-- start websocket serving.
 	while true do

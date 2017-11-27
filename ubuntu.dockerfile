@@ -15,7 +15,13 @@ RUN apt-get update && apt-get install -y \
   libpcre3-dev \
   libssl-dev\
   wget \
-  unzip
+  unzip \
+  golang
+
+
+# download and make disque.
+RUN wget https://github.com/antirez/disque/archive/master.zip && unzip master.zip && rm master.zip && ls -l && cd disque-master/src && make
+
 
 # download nginx.
 RUN wget http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz && tar -xzvf nginx-$NGINX_VERSION.tar.gz && rm nginx-$NGINX_VERSION.tar.gz
@@ -25,12 +31,8 @@ RUN wget http://luajit.org/download/LuaJIT-$LUAJIT_VERSION.tar.gz && tar -xzvf L
 
 # add nginx tools, lua module and njs module.
 RUN mkdir nginx-$NGINX_VERSION/dependencies && cd nginx-$NGINX_VERSION/dependencies && \
-	wget https://github.com/simpl/ngx_devel_kit/archive/$NGINX_DEVEL_KIT_VERSION.zip && unzip $NGINX_DEVEL_KIT_VERSION.zip && rm $NGINX_DEVEL_KIT_VERSION.zip
-	# wget https://github.com/openresty/lua-nginx-module/archive/$NGINX_LUAJIT_VERSION.zip && unzip $NGINX_LUAJIT_VERSION.zip && rm $NGINX_LUAJIT_VERSION.zip && \
-
-# 手元のやつを使うようにしよう。
-COPY ./DockerResources/lua-nginx-module-0.10.11 /nginx-$NGINX_VERSION/dependencies/lua-nginx-module-0.10.11
-# RUN pwd && ls -l && cd lua-nginx-module-0.10.11 && ls -l
+	wget https://github.com/simpl/ngx_devel_kit/archive/$NGINX_DEVEL_KIT_VERSION.zip && unzip $NGINX_DEVEL_KIT_VERSION.zip && rm $NGINX_DEVEL_KIT_VERSION.zip && \
+	wget https://github.com/openresty/lua-nginx-module/archive/$NGINX_LUAJIT_VERSION.zip && unzip $NGINX_LUAJIT_VERSION.zip && rm $NGINX_LUAJIT_VERSION.zip
 
 
 # add shell.
@@ -39,21 +41,20 @@ COPY ./DockerResources/build.sh nginx-$NGINX_VERSION/build.sh
 # build nginx.
 RUN cd nginx-$NGINX_VERSION && sh build.sh
 
-# download and make disque.
-RUN wget https://github.com/antirez/disque/archive/master.zip && unzip master.zip && rm master.zip && ls -l && cd disque-master/src && make
-
 
 # add lua sources.
-RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/lua && ls -l
+RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/lua
 COPY ./DockerResources/lua nginx-$NGINX_VERSION/$NGINX_VERSION/lua
 
 
-# # add js sources.
-# RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/js && ls -l
-# COPY ./DockerResources/js nginx-$NGINX_VERSION/$NGINX_VERSION/js
+# add js sources.
+RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/js && ls -l
+COPY ./DockerResources/js nginx-$NGINX_VERSION/$NGINX_VERSION/js
 
 # overwrite nginx conf.
 COPY ./DockerResources/nginx.conf nginx-$NGINX_VERSION/$NGINX_VERSION/conf/
+
+
 
 # run nginx & disque-server.
 ENTRYPOINT /nginx-$NGINX_VERSION/$NGINX_VERSION/sbin/nginx && /disque-master/src/disque-server

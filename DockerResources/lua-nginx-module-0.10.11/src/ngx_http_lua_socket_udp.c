@@ -154,6 +154,9 @@ ngx_http_lua_socket_udp(lua_State *L)
 }
 
 
+/**
+    peerをセットする。で、ここで宛先のipとportをセットするんだけど、自分のportもセットしたいんだよね。
+*/
 static int
 ngx_http_lua_socket_udp_setpeername(lua_State *L)
 {
@@ -183,8 +186,8 @@ ngx_http_lua_socket_udp_setpeername(lua_State *L)
      */
 
     n = lua_gettop(L);
-    if (n != 2 && n != 3) {
-        return luaL_error(L, "ngx.socket.udp setpeername: expecting 2 or 3 "
+    if (n != 2 && n != 3 && n != 4) {
+        return luaL_error(L, "ngx.socket.udp setpeername: expecting 2,3 or 4 "
                           "arguments (including the object), but seen %d", n);
     }
 
@@ -218,7 +221,7 @@ ngx_http_lua_socket_udp_setpeername(lua_State *L)
     ngx_memcpy(host.data, p, len);
     host.data[len] = '\0';
 
-    if (n == 3) {
+    if (n == 3 || n == 4) {
         port = luaL_checkinteger(L, 3);// ポートの取得を引数から実行してる。
 
         if (port < 0 || port > 65536) {
@@ -230,6 +233,19 @@ ngx_http_lua_socket_udp_setpeername(lua_State *L)
     } else { /* n == 2 */
         port = 0;
     }
+
+    // 追加のソースポート設定、これを ngx_send で反映させることができれば。
+    if (n == 4) {
+        int sourcePort = luaL_checkinteger(L, 4);// 送信元ポートの取得を引数から実行してる。
+        if (sourcePort < 0 || sourcePort > 65536) {
+            lua_pushnil(L);
+            lua_pushfstring(L, "bad source port number: %d", sourcePort);
+            return 2;
+        }
+
+        fprintf(stderr, "source port:%d\n", sourcePort);
+    }
+
 
     lua_rawgeti(L, 1, SOCKET_CTX_INDEX);
     u = lua_touserdata(L, -1);
@@ -295,20 +311,13 @@ ngx_http_lua_socket_udp_setpeername(lua_State *L)
         u->read_timeout = u->conf->read_timeout;
     }
 
-
-
-    // ちょっとデバッグを可能にしてみるか。->できた、エラーが出る。値を知ることはできるんだけど、うーん？
-    luaL_error(L, "here comes");
-    // ngx_log_debug0(NGX_LOG_DEBUG_HTTP, log, 0, "here comes");// これだとどこに出るんだろ、なんか定義が必要っぽいな。ファイルライタでも書くか。
-
-
-    // このへんでurl構造体にポート情報をセットしている。ngx_sendで最後送り出しているのは維持した方がいいのかな。ノンブロッキングなのでその方が楽だと思うんだよな。
+    // このへんでurl構造体にポート情報をセットしている。 ngx_send で最後送り出しているのは維持した方がいいのかな。ノンブロッキングなのでその方が楽だと思うんだよな。
 
     ngx_memzero(&url, sizeof(ngx_url_t));
 
     url.url.len = host.len;
     url.url.data = host.data;
-    url.default_port = (in_port_t) port;// ここでポートがセットされてる。ターゲットだけっぽい。
+    url.default_port = (in_port_t) port;// ここでポートがセットされてる。ターゲットだけ？ 特に使われてなさそうな。
     url.no_resolve = 1;
 
     if (ngx_parse_url(r->pool, &url) != NGX_OK) {
@@ -334,7 +343,9 @@ ngx_http_lua_socket_udp_setpeername(lua_State *L)
         ngx_log_debug0(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
                        "lua udp socket network address given directly");
 
-        u->resolved->sockaddr = url.addrs[0].sockaddr;
+        fprintf(stderr, "ケース1\n");
+
+        u->resolved->sockaddr = url.addrs[0].sockaddr;// ここでsockaddrがセットされてるが、うーん、渡す術がないのか。でもreceiveはできそうな気がして来た。ポート消費は無しで。
         u->resolved->socklen = url.addrs[0].socklen;
         u->resolved->naddrs = 1;
         u->resolved->host = url.addrs[0].name;
@@ -350,8 +361,22 @@ ngx_http_lua_socket_udp_setpeername(lua_State *L)
             return lua_yield(L, 0);
         }
 
+        // どこかで、sockaddr_in sin のsin_portが指定されればいいんだと思う。
+        // sin->sin_family = AF_INET;
+        // sin->sin_port = htons(ur->port);// これがやりたい。ポート番号の指定方法があれば、、
+        // sin->sin_addr.s_addr = ur->addrs[i];
+        // なんかnginxのコード見てたらポート番号を:の後ろにくっつけるのができそうな感じなんだけどどうなの
+        fprintf(stderr, "addrがあるんで、resolveは行われない。\n");
+
         return rc;
     }
+
+
+
+
+
+
+
 
     clcf = ngx_http_get_module_loc_conf(r, ngx_http_core_module);
 
@@ -372,6 +397,8 @@ ngx_http_lua_socket_udp_setpeername(lua_State *L)
     }
 
     rctx->name = host;
+
+
 #if !defined(nginx_version) || nginx_version < 1005008
     rctx->type = NGX_RESOLVE_A;
 #endif
@@ -551,6 +578,7 @@ ngx_http_lua_socket_resolve_handler(ngx_resolver_ctx_t *ctx)
 
     dd("selected addr index: %d", (int) i);
 
+
 #if defined(nginx_version) && nginx_version >= 1005008
     socklen = ur->addrs[i].socklen;
 
@@ -579,7 +607,6 @@ ngx_http_lua_socket_resolve_handler(ngx_resolver_ctx_t *ctx)
     len = ngx_sock_ntop(sockaddr, socklen, p, NGX_SOCKADDR_STRLEN, 1);
     ur->sockaddr = sockaddr;
     ur->socklen = socklen;
-
 #else
     /* for nginx older than 1.5.8 */
 
@@ -788,7 +815,7 @@ ngx_http_lua_socket_error_retval_handler(ngx_http_request_t *r,
 
 /*
     sendを行う処理、この処理でパケットを放出
-    最終的にはngx_sendという関数で送り出している。
+    最終的には ngx_send という関数で送り出している。
     u->udp_connection.connection というソケットを使って送り出す。
 
     このuを生成して
@@ -902,6 +929,11 @@ ngx_http_lua_socket_udp_send(lua_State *L)
     n = ngx_send(u->udp_connection.connection, query.data, query.len);
 
     dd("ngx_send returns %d (query len %d)", (int) n, (int) query.len);
+
+
+
+    // 送り出しログ
+    fprintf(stderr, "send. returns %d (query len %d)", (int) n, (int) query.len);
 
     if (n == NGX_ERROR || n == NGX_AGAIN) {
         u->socket_errno = ngx_socket_errno;
