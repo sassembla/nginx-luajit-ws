@@ -1,3 +1,5 @@
+ngx.log(ngx.ERR, "start lua connection.")
+
 -- get identity of game from url. e.g. http://somewhere/game_key -> game_key
 local identity = string.gsub (ngx.var.uri, "/", "")
 
@@ -21,22 +23,41 @@ end
 
 -- receive udp port.
 -- クライアントがudpを送って来たポートを事前に受け取っておいて、
-local debug_port = ngx.req.get_headers()["debugport"]
-if not debug_port then
-	debug_port = ngx.var.remote_port
+local u_ip = ngx.req.get_headers()["ip"]
+if not u_ip then
+	ngx.log(ngx.ERR, "no ip.")
+	return
+end
+
+local u_port = ngx.req.get_headers()["port"]
+if not u_port then
+	ngx.log(ngx.ERR, "no port.")
 end
 
 
-ngx.log(ngx.ERR, "ready udp:", debug_port, " ngx.var.port:", ngx.var.port)
+ngx.log(ngx.ERR, "ready udp:", u_ip, " port:", u_port, "vs current ngx.var.port:", ngx.var.port)
 
+
+-- ローカルに一発udp打って、ポートを確認しよう。
 -- setup udp socket.
 local udpsock = ngx.socket.udp()
-udpsock:setpeername(ngx.var.remote_addr, debug_port)
+local dataHeader = ""
 
-ngx.log(ngx.ERR, "ready udp done.")
+do
+	-- ここで、ダイレクトに受け取ったポートを使うと、port restricted以外では通過することができる。
 
+	-- 今回はport restricetdを超えたい。
 
-udpsock:send("dummy")
+	-- goの待っているポート向けに、データを作成する。
+	udpsock:setpeername("127.0.0.1", 8081)
+	local count = (#u_ip + #u_port + 1) -- add length of :
+	dataHeader = "d"..count..u_ip..":"..u_port
+	
+	local ok, err = udpsock:send(dataHeader.."the data")
+	-- ok, err = udpsock:send(data)
+	-- ngx.log(ngx.ERR, "udp ok:", ok, " err:", err)
+end
+
 
 
 -- disque setting.
@@ -63,11 +84,6 @@ receiveJobConn:set_timeout(1000 * 60 * 60)
 
 
 addJobCon = disque:new()
-
--- addJobConのメタテーブルにsockがあるのでは-> あった。で、ポートを表すパラメータはあるんだろうか。ngx.socket.tcp
--- ngx.log(ngx.ERR, "addJobCon:", addJobCon.sock)
-
-
 local ok, err = addJobCon:connect(ip, port)
 if not ok then
 	ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate addJob client")
@@ -94,6 +110,9 @@ ngx.log(ngx.ERR, "connection:", connectionId, " start connect.")
 function connectWebSocket()
 	-- start receiving message from context.
 	ngx.thread.spawn(contextReceiving)
+
+	-- start receiving udp.
+	-- ngx.thread.spawn(udpReceiving)
 
 	ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", IDENTIFIER_CONTEXT)
 
@@ -229,8 +248,8 @@ function contextReceiving ()
 			else
 
 				-- udpsockでデータを送るの、失敗しても何も起きないんで、以下しっぱなしにするかどうかのチェックが大変そう。
-				do
-					local ok, err = udpsock:send(sendingData)
+				if udpsock then
+					local ok, err = udpsock:send(dataHeader..sendingData)
 					--ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
 				end
 				
