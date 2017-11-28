@@ -17,21 +17,12 @@ func CheckError(err error) {
 
 func main() {
 	/*
-		nginxからのproxyを受ける->nginx上のproxyで受けてしまうと、同じポートで送出できない。
-		ので、nginxでのudp proxyは不要ということになるが、うーん。まあようはlistenしなければいいんだよね。
-
-		あるいはtokenを返すのに使うか。
-
-		proxyしてることで、このソケットからのoutが特殊なことになってくれるのでは？という期待がある。
+		次のことが実現できた。
+		・client -> go udp server でglobal ip/portを取得
+		・nginx lua -> go udp server -> client へとデータの送付
+		nginx streamのproxy passを通過しているので、このサーバのIOは全てnginxの出力として現れる。
 	*/
-	
-
-
-	// receiver
-	// ここでudpのポートが決定されてしまうのでは？感があるが、ここから返したらどうなるんだろう->proxyしてる部分に対して綺麗に返る。なるほど。
-	// streamの先にはいろいろ書けるので、おおーー分散できるね。自分に到達できるキーを返せばいい、と。で、外部に見せるポートは8080唯一つになる。
 	ServerAddr, err := net.ResolveUDPAddr("udp", ":8081")
-	
 
 	CheckError(err)
 
