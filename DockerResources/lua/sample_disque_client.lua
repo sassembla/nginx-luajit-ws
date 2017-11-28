@@ -49,13 +49,13 @@ do
 	-- 今回はport restricetdを超えたい。
 
 	-- goの待っているポート向けに、データを作成する。
-	udpsock:setpeername("127.0.0.1", 8081)
+	local ok, err = udpsock:setpeername("unix:/tmp/go-udp-server")
+	ngx.log(ngx.ERR, "udp con ok:", ok, " err:", err)
+
 	local count = (#u_ip + #u_port + 1) -- add length of :
 	dataHeader = "d"..count..u_ip..":"..u_port
 	
 	local ok, err = udpsock:send(dataHeader.."the data")
-	-- ok, err = udpsock:send(data)
-	-- ngx.log(ngx.ERR, "udp ok:", ok, " err:", err)
 end
 
 

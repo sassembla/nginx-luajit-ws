@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path/filepath"
 	"strconv"
 	"fmt"
 	"net"
@@ -22,6 +23,8 @@ func main() {
 		・nginx lua -> go udp server -> client へとデータの送付
 		nginx streamのproxy passを通過しているので、このサーバのIOは全てnginxの出力として現れる。
 	*/
+
+	// udp receiver/sender.
 	ServerAddr, err := net.ResolveUDPAddr("udp", ":8081")
 
 	CheckError(err)
@@ -31,61 +34,79 @@ func main() {
 	
 	CheckError(err)
 	
-
 	defer ServerConn.Close()
 
+	go func() {
+		// 受け取りバッファ
+		buf2 := make([]byte, 1024)
+		
+		for {
+			_, addr, err := ServerConn.ReadFromUDP(buf2)
+			// fmt.Println("addr:", addr)
 
-	// 受け取りバッファ
-	buf := make([]byte, 1024)
+			if err != nil {
+				fmt.Println("error: ", err)
+				continue
+			}
+
+			if buf2[0] == 'd' {
+				continue;
+			}
+
+			addrStr := addr.IP.String() + ":" + strconv.Itoa(addr.Port)
+
+			// ポート番号を返す。
+			ServerConn.WriteTo([]byte(addrStr), addr)
+		}
+	}()
 	
-	// 適当な無限ループ
+	// start unix domain socket listening.
+	// unix domain socket receiver.
+	path := filepath.Join(os.TempDir(), "go-udp-server")
+	os.Remove(path)
+	
+	fmt.Println("unix domain path:", path)
+
+	unixConn, err := net.ListenPacket("unixgram", path)
+	CheckError(err)
+
+	// set permission to unix domain socket file.
+	err = os.Chmod(path, 0777)
+	CheckError(err)
+
+	defer unixConn.Close()
+
+	buf := make([]byte, 1024)
 	for {
-		// bufのクリアが必要
+		n, _, err := unixConn.ReadFrom(buf)
 
-		n, addr, err := ServerConn.ReadFromUDP(buf)
-		// fmt.Println("addr:", addr)
-
+		count, err := strconv.Atoi(string(buf[1:3]))
 		if err != nil {
-			fmt.Println("error: ", err)
+			fmt.Println("error1: ", err)
 			continue
 		}
 
-		// 1byte目が特定のマークだったら、データを分解して特定の宛先へと転送する。
-		// addrでローカルからだったら、とかやってもいいと思う。
-		if buf[0] == 'd' {
-			count, err := strconv.Atoi(string(buf[1:3]))
-			if err != nil {
-				fmt.Println("error1: ", err)
-				continue
-			}
-
-			ipAndPort := string(buf[3:count + 3])// get port and id
-			
-			host, portStr, err := net.SplitHostPort(ipAndPort);
-			if err != nil {
-				fmt.Println("error2: ", err)
-				continue
-			}
-			
-			port, err := strconv.Atoi(portStr)
-			if err != nil {
-				fmt.Println("error3: ", err)
-				continue
-			}
-
-			targetAddr := net.UDPAddr{IP:net.ParseIP(host), Port:port, Zone:"sample"}
-
-			data := buf[3+count:n]
-			// fmt.Println("data:", string(data), "vs len:", len(data), "and index", 3+count, "total message len:", n)
-
-			// send udp data to target ip:port.
-			ServerConn.WriteTo(data, &targetAddr)
+		ipAndPort := string(buf[3:count + 3])// get port and id
+		
+		host, portStr, err := net.SplitHostPort(ipAndPort);
+		if err != nil {
+			fmt.Println("error2: ", err)
+			continue
+		}
+		
+		port, err := strconv.Atoi(portStr)
+		if err != nil {
+			fmt.Println("error3: ", err)
 			continue
 		}
 
-		addrStr := addr.IP.String() + ":" + strconv.Itoa(addr.Port)
+		targetAddr := net.UDPAddr{IP:net.ParseIP(host), Port:port, Zone:"sample"}
 
-		// ポート番号を返す。
-		ServerConn.WriteTo([]byte(addrStr), addr)
+		data := buf[3+count:n]
+		// fmt.Println("data:", string(data), "vs len:", len(data), "and index", 3+count, "total message len:", n)
+
+		// send udp data to target ip:port.
+		ServerConn.WriteTo(data, &targetAddr)
 	}
 }
+
