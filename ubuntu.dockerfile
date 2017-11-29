@@ -35,11 +35,8 @@ RUN mkdir nginx-$NGINX_VERSION/dependencies && cd nginx-$NGINX_VERSION/dependenc
 	wget https://github.com/openresty/lua-nginx-module/archive/$NGINX_LUAJIT_VERSION.zip && unzip $NGINX_LUAJIT_VERSION.zip && rm $NGINX_LUAJIT_VERSION.zip
 
 
-# add shell.
+# add nginx build shell.
 COPY ./DockerResources/build.sh nginx-$NGINX_VERSION/build.sh
-
-# テスト用に自前のものを使う
-COPY ./DockerResources/lua-nginx-module-0.10.11 /nginx-$NGINX_VERSION/dependencies/lua-nginx-module-0.10.11
 
 # build nginx.
 RUN cd nginx-$NGINX_VERSION && sh build.sh
@@ -50,14 +47,16 @@ RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/lua
 COPY ./DockerResources/lua nginx-$NGINX_VERSION/$NGINX_VERSION/lua
 
 
-# add js sources.
-RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/js && ls -l
-COPY ./DockerResources/js nginx-$NGINX_VERSION/$NGINX_VERSION/js
+# add go sources.
+RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/go
+COPY ./DockerResources/go nginx-$NGINX_VERSION/$NGINX_VERSION/go
+
+# make go udp server.
+RUN go build -o /nginx-$NGINX_VERSION/$NGINX_VERSION/go/go-udp-server /nginx-$NGINX_VERSION/$NGINX_VERSION/go/main.go
+
 
 # overwrite nginx conf.
 COPY ./DockerResources/nginx.conf nginx-$NGINX_VERSION/$NGINX_VERSION/conf/
 
-
-
-# run nginx & disque-server.
-ENTRYPOINT /nginx-$NGINX_VERSION/$NGINX_VERSION/sbin/nginx && go build -o /nginx-$NGINX_VERSION/$NGINX_VERSION/js/go-udp-server /nginx-$NGINX_VERSION/$NGINX_VERSION/js/main.go && /disque-master/src/disque-server
+# run nginx & disque-server & go-udp-server.
+ENTRYPOINT /nginx-$NGINX_VERSION/$NGINX_VERSION/sbin/nginx && /disque-master/src/disque-server --daemonize yes && /nginx-$NGINX_VERSION/$NGINX_VERSION/go/go-udp-server

@@ -1,5 +1,3 @@
-ngx.log(ngx.ERR, "start lua connection.")
-
 -- get identity of game from url. e.g. http://somewhere/game_key -> game_key
 local identity = string.gsub (ngx.var.uri, "/", "")
 
@@ -21,8 +19,7 @@ if not the_id then
 end
 
 
--- receive udp port.
--- クライアントがudpを送って来たポートを事前に受け取っておいて、
+-- receive global udp target ip and port.
 local u_ip = ngx.req.get_headers()["ip"]
 if not u_ip then
 	ngx.log(ngx.ERR, "no ip.")
@@ -32,30 +29,23 @@ end
 local u_port = ngx.req.get_headers()["port"]
 if not u_port then
 	ngx.log(ngx.ERR, "no port.")
+	return
 end
 
 
-ngx.log(ngx.ERR, "ready udp:", u_ip, " port:", u_port, "vs current ngx.var.port:", ngx.var.port)
-
-
--- ローカルに一発udp打って、ポートを確認しよう。
--- setup udp socket.
+-- udp socket for sending data to connected client via udp.
 local udpsock = ngx.socket.udp()
 local dataHeader = ""
 
 do
-	-- ここで、ダイレクトに受け取ったポートを使うと、port restricted以外では通過することができる。
-
-	-- 今回はport restricetdを超えたい。
-
-	-- goの待っているポート向けに、データを作成する。
 	local ok, err = udpsock:setpeername("unix:/tmp/go-udp-server")
-	ngx.log(ngx.ERR, "udp con ok:", ok, " err:", err)
+	-- ngx.log(ngx.ERR, "udp con ok:", ok, " err:", err)
 
 	local count = (#u_ip + #u_port + 1) -- add length of :
 	dataHeader = "d"..count..u_ip..":"..u_port
 	
-	local ok, err = udpsock:send(dataHeader.."the data")
+	-- test send.
+	-- local ok, err = udpsock:send(dataHeader.."the data")
 end
 
 
@@ -110,9 +100,6 @@ ngx.log(ngx.ERR, "connection:", connectionId, " start connect.")
 function connectWebSocket()
 	-- start receiving message from context.
 	ngx.thread.spawn(contextReceiving)
-
-	-- start receiving udp.
-	-- ngx.thread.spawn(udpReceiving)
 
 	ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", IDENTIFIER_CONTEXT)
 
@@ -247,10 +234,12 @@ function contextReceiving ()
 
 			else
 
-				-- udpsockでデータを送るの、失敗しても何も起きないんで、以下しっぱなしにするかどうかのチェックが大変そう。
 				if udpsock then
 					local ok, err = udpsock:send(dataHeader..sendingData)
 					--ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
+					if not ok then
+						udpsock = nil
+					end
 				end
 				
 			
