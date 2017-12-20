@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="15.0">
+  <PropertyGroup>
+    <AssemblyTitle>cb233b26-68f3-406f-880f-5d1ce1449518</AssemblyTitle>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x64</PlatformTarget>
+    <AssemblyName>cb233b26-68f3-406f-880f-5d1ce1449518</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <OutputPath>bin\Release</OutputPath>
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="cb233b26-68f3-406f-880f-5d1ce1449518.notcs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="/Users/passepied/Desktop/netcore/netcore.csproj" />
+  </ItemGroup>
+  
+</Project>

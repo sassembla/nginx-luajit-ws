@@ -169,6 +169,8 @@ function contextReceiving ()
 		-- game context will send message via connectionId.
 		local res, err = receiveJobConn:getjob("from", connectionId)
 		
+		ngx.log(ngx.ERR, "receiving data:", #res)
+
 		if not res then
 			ngx.log(ngx.ERR, "err:", err)
 			break

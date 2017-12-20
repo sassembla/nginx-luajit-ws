@@ -1,7 +1,7 @@
 FROM ubuntu
 
 ENV NGINX_VERSION 1.13.6
-ENV LUAJIT_VERSION 2.1.0-beta2
+ENV LUAJIT_VERSION 2.1.0-beta3
 ENV NGINX_DEVEL_KIT_VERSION v0.3.0
 ENV NGINX_LUAJIT_VERSION v0.10.11
 
@@ -17,6 +17,16 @@ RUN apt-get update && apt-get install -y \
   wget \
   unzip \
   golang
+
+RUN apt-get update && apt-get install -y curl apt-transport-https
+
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg
+
+RUN mv microsoft.gpg /etc/apt/trusted.gpg.d/microsoft.gpg
+
+RUN sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/microsoft-ubuntu-xenial-prod xenial main" > /etc/apt/sources.list.d/dotnetdev.list'
+
+RUN apt-get update && apt-get install -y dotnet-sdk-2.0.0  
 
 
 # download and make disque.
@@ -57,6 +67,15 @@ RUN go build -o /nginx-$NGINX_VERSION/$NGINX_VERSION/go/go-udp-server /nginx-$NG
 
 # overwrite nginx conf.
 COPY ./DockerResources/nginx.conf nginx-$NGINX_VERSION/$NGINX_VERSION/conf/
+
+
+# add c# sources.
+RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/csharp
+COPY ./DockerResources/csharp nginx-$NGINX_VERSION/$NGINX_VERSION/csharp
+
+# make c# server.
+run cd nginx-$NGINX_VERSION/$NGINX_VERSION/csharp && dotnet build
+
 
 # run nginx & disque-server & go-udp-server.
 ENTRYPOINT /nginx-$NGINX_VERSION/$NGINX_VERSION/sbin/nginx && /disque-master/src/disque-server --daemonize yes && /nginx-$NGINX_VERSION/$NGINX_VERSION/go/go-udp-server

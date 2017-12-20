@@ -20,7 +20,7 @@ docker build -f ubuntu.dockerfile -t nginx-luajit-ubuntu .
 # Create container from image
 
 ```shellscript
-docker run -ti -d --name nginx_luajit -p 8080:80 -v $(pwd)/logs:/nginx-1.11.9/1.11.9/logs nginx-luajit-ubuntu
+docker run -ti -d --name nginx_luajit -p 8080:8080 -p 8080:8080/udp -p 7711:7711 -v $(pwd)/logs:/nginx-1.13.6/1.13.6/logs nginx-luajit-centos
 ```
 
 # Connect to connnection server
