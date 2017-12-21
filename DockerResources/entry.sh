@@ -1,0 +1,2 @@
+nohup /nginx-$NGINX_VERSION/$NGINX_VERSION/go/go-udp-server &
+/nginx-$NGINX_VERSION/$NGINX_VERSION/sbin/nginx && /disque-master/src/disque-server --daemonize yes && cd /nginx-$NGINX_VERSION/$NGINX_VERSION/csharp && sh run.sh

@@ -56,42 +56,10 @@ namespace netcore
 							return true;
 						}
 					);
-
-				// 	// addjob. add 10bytes job to Disque.
-				// 	disquuun.AddJob(serverQueueId, new byte[10]).Async(
-				// 		(addJobCommand, addJobData) => {
-				// 			// job added to serverQueueId @ Disque.
-							
-				// 			// getjob. get job from Disque.
-				// 			disquuun.GetJob(new string[]{serverQueueId}).Async(
-				// 				(getJobCommand, getJobData) => {
-				// 					// got job by serverQueueId from Disque server.
-									
-				// 					var jobDatas = DisquuunDeserializer.GetJob(getJobData);
-				// 					Assert(1, jobDatas.Length, "not match.");
-									
-				// 					// get jobId from got job data.
-				// 					var gotJobId = jobDatas[0].jobId;
-									
-				// 					// fastack it.
-				// 					disquuun.FastAck(new string[]{gotJobId}).Async(
-				// 						(fastAckCommand, fastAckData) => {
-				// 							// fastack succeded or not.
-											
-				// 							fastAckedJobCount = DisquuunDeserializer.FastAck(fastAckData);
-				// 							Assert(1, fastAckedJobCount, "not match.");
-				// 						} 
-				// 					);
-				// 				}
-				// 			);
-				// 		}
-				// 	);
 				}
 			);
 
-			while (true) {
-
-			}
+			Console.ReadLine();
         }
     }
 }

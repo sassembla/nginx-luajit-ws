@@ -77,5 +77,7 @@ COPY ./DockerResources/csharp nginx-$NGINX_VERSION/$NGINX_VERSION/csharp
 run cd nginx-$NGINX_VERSION/$NGINX_VERSION/csharp && dotnet build
 
 
-# run nginx & disque-server & go-udp-server.
-ENTRYPOINT /nginx-$NGINX_VERSION/$NGINX_VERSION/sbin/nginx && /disque-master/src/disque-server --daemonize yes && /nginx-$NGINX_VERSION/$NGINX_VERSION/go/go-udp-server
+COPY ./DockerResources/entry.sh entry.sh
+
+# run nginx & disque-server & go-udp-server & echo server.
+ENTRYPOINT sh entry.sh
