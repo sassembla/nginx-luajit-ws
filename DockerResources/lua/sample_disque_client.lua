@@ -165,9 +165,12 @@ function contextReceiving ()
 	local localWs = ws
 	local localMaxLen = maxLen
 	while true do
+		ngx.log(ngx.ERR, "receiving data6")
 		-- receive message from disque queue, through connectionId. 
 		-- game context will send message via connectionId.
 		local res, err = receiveJobConn:getjob("from", connectionId)
+		
+		ngx.log(ngx.ERR, "receiving data:", #res)
 
 		if not res then
 			ngx.log(ngx.ERR, "err:", err)
@@ -233,7 +236,7 @@ function contextReceiving ()
 				end
 
 			else
-
+				ngx.log(ngx.ERR, "receiving data2:", #res)
 				if udpsock then
 					local ok, err = udpsock:send(dataHeader..sendingData)
 					--ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
@@ -241,10 +244,11 @@ function contextReceiving ()
 						udpsock = nil
 					end
 				end
-				
+				ngx.log(ngx.ERR, "receiving data3:", #res)
 			
 				-- send data to client
 				local bytes, err = localWs:send_binary(sendingData)
+				ngx.log(ngx.ERR, "receiving data4:", #res, err)
 
 				if not bytes then
 					ngx.log(ngx.ERR, "disque, 未解決の、送付失敗時にすべきこと。 connection:", connectionId, " failed to send text to client. err:", err)
@@ -252,6 +256,7 @@ function contextReceiving ()
 					addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
 					break
 				end
+				ngx.log(ngx.ERR, "receiving data5:", #res)
 			end
 		end
 	end

@@ -1,1 +1,1 @@
-dotnet run --configuration release
+dotnet run --configuration release "sample_disque_client_context"

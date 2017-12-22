@@ -15,7 +15,7 @@ namespace netcore
         {
         	var idLen = "09aac32820d3d25d3b787e1e7622cf090000".Length;
 
-            var serverQueueId = "sample_disque_client_context";
+            var serverQueueId = args[0];
         	Disquuun disquuun = null;
 
             disquuun = new Disquuun("127.0.0.1", 7711, 1024, 10,
