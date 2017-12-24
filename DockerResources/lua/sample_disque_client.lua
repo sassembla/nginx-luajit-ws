@@ -120,7 +120,7 @@ function connectWebSocket()
 
 		if not recv_data then
 			ngx.log(ngx.ERR, "connection:", connectionId, " received empty data.")
-			-- log only. do nothing.
+			break
 		end
 
 		if typ == "close" then
