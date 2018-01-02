@@ -8,3 +8,13 @@
 /Users/passepied/Desktop/netcore/bin/Debug/netcoreapp2.0/netcore.pdb
 /Users/passepied/Desktop/netcore/obj/Debug/netcoreapp2.0/netcore.dll
 /Users/passepied/Desktop/netcore/obj/Debug/netcoreapp2.0/netcore.pdb
+/nginx-1.13.6/1.13.6/csharp/bin/Debug/netcoreapp2.0/netcore.deps.json
+/nginx-1.13.6/1.13.6/csharp/bin/Debug/netcoreapp2.0/netcore.runtimeconfig.json
+/nginx-1.13.6/1.13.6/csharp/bin/Debug/netcoreapp2.0/netcore.runtimeconfig.dev.json
+/nginx-1.13.6/1.13.6/csharp/bin/Debug/netcoreapp2.0/netcore.dll
+/nginx-1.13.6/1.13.6/csharp/bin/Debug/netcoreapp2.0/netcore.pdb
+/nginx-1.13.6/1.13.6/csharp/obj/Debug/netcoreapp2.0/netcore.csproj.CoreCompileInputs.cache
+/nginx-1.13.6/1.13.6/csharp/obj/Debug/netcoreapp2.0/netcore.AssemblyInfoInputs.cache
+/nginx-1.13.6/1.13.6/csharp/obj/Debug/netcoreapp2.0/netcore.AssemblyInfo.cs
+/nginx-1.13.6/1.13.6/csharp/obj/Debug/netcoreapp2.0/netcore.dll
+/nginx-1.13.6/1.13.6/csharp/obj/Debug/netcoreapp2.0/netcore.pdb

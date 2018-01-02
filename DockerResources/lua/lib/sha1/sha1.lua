@@ -295,3 +295,4 @@ end
 setmetatable(sha1, {__call = function(_,msg) return sha1.sha1(msg) end })
 
 return sha1
+

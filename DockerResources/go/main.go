@@ -31,15 +31,15 @@ func main() {
 
 	// start listen.
 	ServerConn, err := net.ListenUDP("udp", ServerAddr)
-	
+
 	CheckError(err)
-	
+
 	defer ServerConn.Close()
 
 	go func() {
 		// 受け取りバッファ
 		buf2 := make([]byte, 1024)
-		
+
 		for {
 			_, addr, err := ServerConn.ReadFromUDP(buf2)
 			// fmt.Println("addr:", addr)
@@ -53,18 +53,18 @@ func main() {
 				continue;
 			}
 
-			addrStr := addr.IP.String() + ":" + strconv.Itoa(addr.Port)
+			addrStr := strconv.Itoa(addr.Port)
 
 			// ポート番号を返す。
 			ServerConn.WriteTo([]byte(addrStr), addr)
 		}
 	}()
-	
+
 	// start unix domain socket listening.
 	// unix domain socket receiver.
 	path := filepath.Join(os.TempDir(), "go-udp-server")
 	os.Remove(path)
-	
+
 	fmt.Println("unix domain path:", path)
 
 	unixConn, err := net.ListenPacket("unixgram", path)
@@ -77,36 +77,34 @@ func main() {
 	defer unixConn.Close()
 
 	buf := make([]byte, 1024)
+	targetIp := net.ParseIP("127.0.0.1")
+
 	for {
 		n, _, err := unixConn.ReadFrom(buf)
 
-		count, err := strconv.Atoi(string(buf[1:3]))
+		count, err := strconv.Atoi(string(buf[:1]))
+
 		if err != nil {
 			fmt.Println("error1: ", err)
 			continue
 		}
 
-		ipAndPort := string(buf[3:count + 3])// get port and id
-		
-		host, portStr, err := net.SplitHostPort(ipAndPort);
+		//fmt.Println("count:", count)
+
+		port := string(buf[1:count])// get port.
+		//fmt.Println("port:", port)
+		portNum, err := strconv.Atoi(port)
 		if err != nil {
 			fmt.Println("error2: ", err)
 			continue
 		}
-		
-		port, err := strconv.Atoi(portStr)
-		if err != nil {
-			fmt.Println("error3: ", err)
-			continue
-		}
 
-		targetAddr := net.UDPAddr{IP:net.ParseIP(host), Port:port, Zone:"sample"}
+		targetAddr := net.UDPAddr{IP:targetIp, Port:portNum, Zone:"sample"}
 
-		data := buf[3+count:n]
-		// fmt.Println("data:", string(data), "vs len:", len(data), "and index", 3+count, "total message len:", n)
-
+		data := buf[count:n]
 		// send udp data to target ip:port.
 		ServerConn.WriteTo(data, &targetAddr)
 	}
 }
+
 

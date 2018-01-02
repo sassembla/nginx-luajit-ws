@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Text;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Security.Cryptography;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
@@ -13,85 +16,102 @@ namespace netcore
     {
         static void Main(string[] args)
         {
-        	var idLen = "09aac32820d3d25d3b787e1e7622cf090000".Length;
+            var idLen = "09aac32820d3d25d3b787e1e7622cf090000".Length;
 
             var serverQueueId = args[0];
-        	Disquuun disquuun = null;
+            Disquuun disquuun = null;
+            var dataDicts = new Dictionary<string, List<byte[]>>();
 
-            disquuun = new Disquuun("127.0.0.1", 7711, 1024, 10,
-				disquuunId => {
-					disquuun.GetJob(new string[]{serverQueueId}).Loop(
-						(command, data) => {
-							var jobDatas = DisquuunDeserializer.GetJob(data);
 
-							var jobIds = jobDatas.Select(data1 => data1.jobId).ToArray();
-							var datas = jobDatas.Select(data2 => data2.jobData).ToArray();
-							
-							// fastack it.
-							disquuun.FastAck(jobIds).Async(
-								(fastAckCommand, fastAckData) => {} 
-							);
-							
-							// reflect datas to cluent.
-							foreach (var sendData in datas) {
-								// Console.WriteLine("head:" + sendData[0] + " is:" + (sendData[0] == 2));//
-								if (sendData[0] == '2' || sendData[0] == '3') {
-									// pass.
-								} else {
-									// skip data.
-									continue;
-								}
+            var lockObj = new object();
 
-								var targetQueueId = new byte[idLen];
-								var queueData = new byte[sendData.Length - (idLen + 1)];
+            disquuun = new Disquuun("127.0.0.1", 7711, 1024, 30,
+                disquuunId =>
+                {
+                    disquuun.GetJob(new string[] { serverQueueId }).Loop(
+                        (command, data) =>
+                        {
+                            var jobDatas = DisquuunDeserializer.GetJob(data);
 
-								Buffer.BlockCopy(sendData, 1, targetQueueId, 0, targetQueueId.Length);
-								Buffer.BlockCopy(sendData, targetQueueId.Length + 1, queueData, 0, queueData.Length);
+                            var jobIds = jobDatas.Select(data1 => data1.jobId).ToArray();
+                            var datas = jobDatas.Select(data2 => data2.jobData).ToArray();
 
-								var queueStr = Encoding.UTF8.GetString(targetQueueId);
-								// Console.WriteLine("queueStr:" + queueStr);
-								disquuun.Pipeline(disquuun.AddJob(queueStr, queueData));
-							}
-							disquuun.Pipeline().Execute((pCommand, pData) => {});
-							return true;
-						}
-					);
-				}
-			);
+                            // fastack it.
+                            disquuun.FastAck(jobIds).Async((a, b) => { });
 
-			Console.ReadLine();
+                            // reflect datas to client.
+                            foreach (var sendData in datas)
+                            {
+                                // Console.WriteLine("head:" + sendData[0] + " is:" + (sendData[0] == 2));//
+                                if (sendData[0] == '2' || sendData[0] == '3')
+                                {
+                                    // pass.
+                                }
+                                else
+                                {
+                                    // skip data.
+                                    continue;
+                                }
+
+                                var targetQueueId = new byte[idLen];
+                                var queueData = new byte[sendData.Length - (idLen + 1)];
+
+                                Buffer.BlockCopy(sendData, 1, targetQueueId, 0, targetQueueId.Length);
+                                Buffer.BlockCopy(sendData, targetQueueId.Length + 1, queueData, 0, queueData.Length);
+
+                                var queueStr = Encoding.UTF8.GetString(targetQueueId);
+
+                                lock (lockObj)
+                                {
+                                    if (!dataDicts.ContainsKey(queueStr))
+                                    {
+                                        dataDicts[queueStr] = new List<byte[]>();
+                                    }
+
+                                    dataDicts[queueStr].Add(queueData);
+                                }
+                            }
+                            return true;
+                        }
+                    );
+                }
+            );
+
+            Task.Run(async () =>
+            {
+                try
+                {
+                    while (true)
+                    {
+                        lock (lockObj)
+                        {
+                            foreach (var dataItem in dataDicts)
+                            {
+                                var key = dataItem.Key;
+                                var datas = dataItem.Value;
+
+                                foreach (var data in datas)
+                                {
+                                    disquuun.Pipeline(disquuun.AddJob(key, data));
+                                }
+                            }
+
+                            dataDicts.Clear();
+                        }
+
+                        disquuun.Pipeline().Execute((pCommand, pData) => { });
+
+                        await Task.Delay(16);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("dead by error, e:" + e);
+                }
+                Console.WriteLine("finish to run.");
+            });
+
+            Console.ReadLine();
         }
     }
 }
-
-// namespace MyBenchmarks
-// {
-//     public class Md5VsSha256
-//     {
-//         private const int N = 10000;
-//         private readonly byte[] data;
-
-//         private readonly SHA256 sha256 = SHA256.Create();
-//         private readonly MD5 md5 = MD5.Create();
-
-//         public Md5VsSha256()
-//         {
-//             data = new byte[N];
-//             new Random(42).NextBytes(data);
-//         }
-
-//         [Benchmark]
-//         public byte[] Sha256() => sha256.ComputeHash(data);
-
-//         [Benchmark]
-//         public byte[] Md5() => md5.ComputeHash(data);
-//     }
-
-//     public class Program
-//     {
-//         public static void Main(string[] args)
-//         {
-//             var summary = BenchmarkRunner.Run<Md5VsSha256>();
-//         }
-//     }
-// }

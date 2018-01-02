@@ -13,22 +13,19 @@ STATE_DISCONNECT_ACCIDT = 5
 STATE_DISCONNECT_DISQUE_ACKFAILED = 6
 STATE_DISCONNECT_DISQUE_ACCIDT_SENDFAILED = 7
 
+
+
 local the_id = ngx.req.get_headers()["id"]
 if not the_id then
 	the_id = "_empty_"
 end
 
 
--- receive global udp target ip and port.
-local u_ip = ngx.req.get_headers()["ip"]
-if not u_ip then
-	ngx.log(ngx.ERR, "no ip.")
-	return
-end
 
-local u_port = ngx.req.get_headers()["port"]
+-- receive global udp target port.
+local u_port = ngx.req.get_headers()["param"]
 if not u_port then
-	ngx.log(ngx.ERR, "no port.")
+	ngx.log(ngx.ERR, "no param.")
 	return
 end
 
@@ -41,8 +38,8 @@ do
 	local ok, err = udpsock:setpeername("unix:/tmp/go-udp-server")
 	-- ngx.log(ngx.ERR, "udp con ok:", ok, " err:", err)
 
-	local count = (#u_ip + #u_port + 1) -- add length of :
-	dataHeader = "d"..count..u_ip..":"..u_port
+	local count = (#u_port + 1) -- add length of :
+	dataHeader = count..u_port
 	
 	-- test send.
 	-- local ok, err = udpsock:send(dataHeader.."the data")
@@ -50,12 +47,11 @@ end
 
 
 
--- disque setting.
-ip = "127.0.0.1"-- localhost.
-port = 7711
 
 
--- entrypoint for WebSocket client connection.
+-- create upstream/downstream by disque.
+disqueIp = "127.0.0.1"
+disquePort = 7711
 
 -- setup Disque get-add
 local disque = require "disque.disque"
@@ -64,7 +60,7 @@ local disque = require "disque.disque"
 local connectionId = ngx.var.request_id .. "0000"
 
 receiveJobConn = disque:new()
-local ok, err = receiveJobConn:connect(ip, port)
+local ok, err = receiveJobConn:connect(disqueIp, disquePort)
 if not ok then
 	ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate receiveJob client")
 	return
@@ -74,13 +70,18 @@ receiveJobConn:set_timeout(1000 * 60 * 60)
 
 
 addJobCon = disque:new()
-local ok, err = addJobCon:connect(ip, port)
+local ok, err = addJobCon:connect(disqueIp, disquePort)
 if not ok then
 	ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate addJob client")
 	return
 end
 
-local maxLen = 1024
+
+
+
+
+
+local maxLen = 1024 -- 1k
 
 -- setup websocket client
 local wsServer = require "ws.websocketServer"
@@ -91,17 +92,18 @@ ws, wErr = wsServer:new{
 }
 
 if not ws then
-	ngx.log(ngx.ERR, "connection:", connectionId, " failed to new websocket: ", wErr)
+	ngx.log(ngx.ERR, "connection:", connectionId, " failed to new websocket:", wErr)
 	return
 end
 
-ngx.log(ngx.ERR, "connection:", connectionId, " start connect.")
+
+
 
 function connectWebSocket()
 	-- start receiving message from context.
 	ngx.thread.spawn(contextReceiving)
 
-	ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", IDENTIFIER_CONTEXT)
+	-- ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", IDENTIFIER_CONTEXT)
 
 	-- send connected to gameContext.
 	local data = STATE_CONNECT..connectionId..the_id
@@ -120,7 +122,7 @@ function connectWebSocket()
 
 		if not recv_data then
 			ngx.log(ngx.ERR, "connection:", connectionId, " received empty data.")
-			break
+			-- log only. do nothing.
 		end
 
 		if typ == "close" then
@@ -157,20 +159,21 @@ function connectWebSocket()
 	ws:send_close()
 	ngx.log(ngx.ERR, "connection:", connectionId, " connection closed")
 
+	addJobCon:close()
+	receiveJobConn:close()
 	ngx.exit(200)
 end
 
--- loop for receiving messages from game context.
+-- loop for receiving messages from downstream.
 function contextReceiving ()
 	local localWs = ws
 	local localMaxLen = maxLen
 	while true do
-		ngx.log(ngx.ERR, "receiving data6")
 		-- receive message from disque queue, through connectionId. 
 		-- game context will send message via connectionId.
 		local res, err = receiveJobConn:getjob("from", connectionId)
 		
-		ngx.log(ngx.ERR, "receiving data:", #res)
+		--ngx.log(ngx.ERR, "receiving data:", #res)
 
 		if not res then
 			ngx.log(ngx.ERR, "err:", err)
@@ -186,16 +189,11 @@ function contextReceiving ()
 			-- fastack to disque
 			local ackRes, ackErr = receiveJobConn:fastack(messageId)
 			if not ackRes then
-				ngx.log(ngx.ERR, "disque, ackに失敗したケース connection:", connectionId, " ackErr:", ackErr)				
 				local data = STATE_DISCONNECT_DISQUE_ACKFAILED..connectionId..the_id
 				addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
 				break
 			end
 			-- ngx.log(ngx.ERR, "messageId:", messageId, " ackRes:", ackRes)
-
-			-- というわけで、ここまででデータは取得できているが、ここで先頭を見て、、みたいなのが必要になってくる。
-			-- 入れる側にもなんかデータ接続が出ちゃうんだなあ。うーん、、まあでもサーバ側なんでいいや。CopyがN回増えるだけだ。
-			-- 残る課題は、ここでヘッダを見る、ってことだね。
 
 			-- split data with continuation frame if need.
 			if (localMaxLen < #sendingData) then
@@ -210,7 +208,6 @@ function contextReceiving ()
 
 					local bytes, err = localWs:send_continue(continueData)
 					if not bytes then
-						ngx.log(ngx.ERR, "disque, continue送付の失敗。 connection:", connectionId, " failed to send text to client. err:", err)
 						local data = STATE_DISCONNECT_DISQUE_ACCIDT_SENDFAILED..connectionId..sendingData
 						addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
 						failed = true
@@ -229,14 +226,13 @@ function contextReceiving ()
 
 				local bytes, err = localWs:send_binary(lastData)
 				if not bytes then
-					ngx.log(ngx.ERR, "disque, continue送付の失敗。 connection:", connectionId, " failed to send text to client. err:", err)
 					local data = STATE_DISCONNECT_DISQUE_ACCIDT_SENDFAILED..connectionId..sendingData
 					addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
 					break
 				end
 
 			else
-				ngx.log(ngx.ERR, "receiving data2:", #res)
+				-- send data via udp.
 				if udpsock then
 					local ok, err = udpsock:send(dataHeader..sendingData)
 					--ngx.log(ngx.ERR, "udp send ok:", ok, " err:", err)
@@ -244,25 +240,24 @@ function contextReceiving ()
 						udpsock = nil
 					end
 				end
-				ngx.log(ngx.ERR, "receiving data3:", #res)
 			
-				-- send data to client
+				-- send data to client via websocket.
 				local bytes, err = localWs:send_binary(sendingData)
-				ngx.log(ngx.ERR, "receiving data4:", #res, err)
-
+				
 				if not bytes then
-					ngx.log(ngx.ERR, "disque, 未解決の、送付失敗時にすべきこと。 connection:", connectionId, " failed to send text to client. err:", err)
 					local data = STATE_DISCONNECT_DISQUE_ACCIDT_SENDFAILED..connectionId..sendingData
 					addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
 					break
 				end
-				ngx.log(ngx.ERR, "receiving data5:", #res)
+				--ngx.log(ngx.ERR, "receiving data5:", #res)
 			end
 		end
 	end
 	
-	ngx.log(ngx.ERR, "connection:", connectionId, " connection closed by disque error.")
 	ngx.exit(200)
 end
 
+
+
+-- start receiving websocket data.
 connectWebSocket()
