@@ -10,6 +10,7 @@ export LUAJIT_INC=/usr/local/include/luajit-2.1
 # make & install nginx to PROJECT_PATH/NGINX_VERSION
 ./configure \
 	--with-stream \
+	--with-http_stub_status_module \
 	--with-ld-opt="-Wl,-rpath,$LUAJIT_LIB" \
 	--prefix=$PROJECT_PATH/$NGINX_VERSION \
 	--add-module=$NGX_DEVEL_KIT \
