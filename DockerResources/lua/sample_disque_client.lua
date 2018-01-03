@@ -17,9 +17,6 @@ UNIX_DOMAIN_SOCKET_PATH = "unix:/tmp/go-udp-server"
 
 -- get parameters from request.
 -- この部分は、リクエストからパラメータを抜き出す、という形でなんか切り離せると良さげ。
-
-
-
 do
 	the_id = ngx.req.get_headers()["id"]
 	if not the_id then
@@ -37,42 +34,10 @@ end
 -- udp socket for sending data to connected client via udp.
 do
 	udpsock = ngx.socket.udp()
-	udpsock:setpeername(unixDomainSocketPath)
+	udpsock:setpeername(UNIX_DOMAIN_SOCKET_PATH)
 
 	local count = (#udp_port)
 	dataHeader = count..udp_port
-end
-
-
-
-
-do
-	-- create upstream/downstream by disque.
-	local disqueIp = "127.0.0.1"
-	local disquePort = 7711
-
-	-- setup Disque get-add
-	local disque = require "disque.disque"
-
-	-- connectionId is nginx's request id. that len is 32 + 4.
-	connectionId = ngx.var.request_id .. "0000"
-
-	receiveJobConn = disque:new()
-	local ok, err = receiveJobConn:connect(disqueIp, disquePort)
-	if not ok then
-		ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate receiveJob client")
-		return
-	end
-
-	receiveJobConn:set_timeout(1000 * 60 * 60)
-
-
-	addJobCon = disque:new()
-	local ok, err = addJobCon:connect(disqueIp, disquePort)
-	if not ok then
-		ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate addJob client")
-		return
-	end
 end
 
 
@@ -95,11 +60,7 @@ do
 end
 
 
-
 function connectWebSocket()
-	-- start receiving message from context.
-	ngx.thread.spawn(contextReceiving)
-
 	-- ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", UPSTREAM_IDENTIFIER)
 
 	-- send connected to gameContext.
@@ -161,8 +122,7 @@ function connectWebSocket()
 	ngx.exit(200)
 end
 
--- loop for receiving messages from downstream.
-function contextReceiving ()
+function transferMessages ()
 	local localWs = ws
 	local localMaxLen = maxLen
 	while true do
@@ -256,5 +216,37 @@ end
 
 
 
--- start receiving websocket data.
+-- create upstream/downstream by disque.
+do
+	local disqueIp = "127.0.0.1"
+	local disquePort = 7711
+
+	-- setup Disque get-add
+	local disque = require "disque.disque"
+
+	-- connectionId is nginx's request id. that len is 32 + 4.
+	connectionId = ngx.var.request_id .. "0000"
+
+	receiveJobConn = disque:new()
+	local ok, err = receiveJobConn:connect(disqueIp, disquePort)
+	if not ok then
+		ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate receiveJob client")
+		return
+	end
+
+	receiveJobConn:set_timeout(1000 * 60 * 60)-- 変えたい。というかtime_waitを無くしたい
+
+
+	addJobCon = disque:new()
+	local ok, err = addJobCon:connect(disqueIp, disquePort)
+	if not ok then
+		ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate addJob client")
+		return
+	end
+end
+
+-- start receiving message from upstream.
+ngx.thread.spawn(transferMessages)
+
+-- start receiving message from downstream & sending message to upstream.
 connectWebSocket()
