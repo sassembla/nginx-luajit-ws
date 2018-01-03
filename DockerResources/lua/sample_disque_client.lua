@@ -1,10 +1,8 @@
--- get identity of game from url. e.g. http://somewhere/game_key -> game_key
-local identity = string.gsub (ngx.var.uri, "/", "")
-
--- generate identity of queue for target context.
-IDENTIFIER_CONTEXT = identity .. "_context"
+-- get identity of game from url. e.g. http://somewhere/game_key -> game_key_context.
+UPSTREAM_IDENTIFIER = string.gsub(ngx.var.uri, "/", "") .. "_context"
 
 
+-- message types.
 STATE_CONNECT			= 1
 STATE_STRING_MESSAGE	= 2
 STATE_BINARY_MESSAGE	= 3
@@ -14,88 +12,87 @@ STATE_DISCONNECT_DISQUE_ACKFAILED = 6
 STATE_DISCONNECT_DISQUE_ACCIDT_SENDFAILED = 7
 
 
-
-local the_id = ngx.req.get_headers()["id"]
-if not the_id then
-	the_id = "_empty_"
-end
+UNIX_DOMAIN_SOCKET_PATH = "unix:/tmp/go-udp-server"
 
 
+-- get parameters from request.
+-- この部分は、リクエストからパラメータを抜き出す、という形でなんか切り離せると良さげ。
 
--- receive global udp target port.
-local u_port = ngx.req.get_headers()["param"]
-if not u_port then
-	ngx.log(ngx.ERR, "no param.")
-	return
+
+
+do
+	the_id = ngx.req.get_headers()["id"]
+	if not the_id then
+		the_id = "_empty_"
+	end
+
+	udp_port = ngx.req.get_headers()["param"]
+	if not udp_port then
+		ngx.log(ngx.ERR, "no param.")
+		return
+	end
 end
 
 
 -- udp socket for sending data to connected client via udp.
-local udpsock = ngx.socket.udp()
-local dataHeader = ""
+do
+	udpsock = ngx.socket.udp()
+	udpsock:setpeername(unixDomainSocketPath)
+
+	local count = (#udp_port)
+	dataHeader = count..udp_port
+end
+
+
+
 
 do
-	local ok, err = udpsock:setpeername("unix:/tmp/go-udp-server")
-	-- ngx.log(ngx.ERR, "udp con ok:", ok, " err:", err)
+	-- create upstream/downstream by disque.
+	local disqueIp = "127.0.0.1"
+	local disquePort = 7711
 
-	local count = (#u_port + 1) -- add length of :
-	dataHeader = count..u_port
-	
-	-- test send.
-	-- local ok, err = udpsock:send(dataHeader.."the data")
+	-- setup Disque get-add
+	local disque = require "disque.disque"
+
+	-- connectionId is nginx's request id. that len is 32 + 4.
+	connectionId = ngx.var.request_id .. "0000"
+
+	receiveJobConn = disque:new()
+	local ok, err = receiveJobConn:connect(disqueIp, disquePort)
+	if not ok then
+		ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate receiveJob client")
+		return
+	end
+
+	receiveJobConn:set_timeout(1000 * 60 * 60)
+
+
+	addJobCon = disque:new()
+	local ok, err = addJobCon:connect(disqueIp, disquePort)
+	if not ok then
+		ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate addJob client")
+		return
+	end
 end
 
 
 
+do
+	maxLen = 1024 -- 1k
 
+	-- setup websocket client
+	local wsServer = require "ws.websocketServer"
 
--- create upstream/downstream by disque.
-disqueIp = "127.0.0.1"
-disquePort = 7711
+	ws, wErr = wsServer:new{
+		timeout = 10000000,
+		max_payload_len = maxLen
+	}
 
--- setup Disque get-add
-local disque = require "disque.disque"
-
--- connectionId is nginx's request id. that len is 32 + 4.
-local connectionId = ngx.var.request_id .. "0000"
-
-receiveJobConn = disque:new()
-local ok, err = receiveJobConn:connect(disqueIp, disquePort)
-if not ok then
-	ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate receiveJob client")
-	return
+	if not ws then
+		ngx.log(ngx.ERR, "connection:", connectionId, " failed to new websocket:", wErr)
+		return
+	end
 end
-
-receiveJobConn:set_timeout(1000 * 60 * 60)
-
-
-addJobCon = disque:new()
-local ok, err = addJobCon:connect(disqueIp, disquePort)
-if not ok then
-	ngx.log(ngx.ERR, "connection:", connectionId, " failed to generate addJob client")
-	return
-end
-
-
-
-
-
-
-local maxLen = 1024 -- 1k
-
--- setup websocket client
-local wsServer = require "ws.websocketServer"
-
-ws, wErr = wsServer:new{
-	timeout = 10000000,-- this should be set good value.
-	max_payload_len = maxLen
-}
-
-if not ws then
-	ngx.log(ngx.ERR, "connection:", connectionId, " failed to new websocket:", wErr)
-	return
-end
-
 
 
 
@@ -103,11 +100,11 @@ function connectWebSocket()
 	-- start receiving message from context.
 	ngx.thread.spawn(contextReceiving)
 
-	-- ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", IDENTIFIER_CONTEXT)
+	-- ngx.log(ngx.ERR, "connection:", connectionId, " established. the_id:", the_id, " to context:", UPSTREAM_IDENTIFIER)
 
 	-- send connected to gameContext.
 	local data = STATE_CONNECT..connectionId..the_id
-	addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
+	addJobCon:addjob(UPSTREAM_IDENTIFIER, data, 0)
 	
 	-- start websocket serving.
 	while true do
@@ -116,7 +113,7 @@ function connectWebSocket()
 		if ws.fatal then
 			ngx.log(ngx.ERR, "connection:", connectionId, " closing accidentially. ", err)
 			local data = STATE_DISCONNECT_ACCIDT..connectionId..the_id
-			addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
+			addJobCon:addjob(UPSTREAM_IDENTIFIER, data, 0)
 			break
 		end
 
@@ -128,7 +125,7 @@ function connectWebSocket()
 		if typ == "close" then
 			ngx.log(ngx.ERR, "connection:", connectionId, " closing intentionally.")
 			local data = STATE_DISCONNECT_INTENT..connectionId..the_id
-			addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
+			addJobCon:addjob(UPSTREAM_IDENTIFIER, data, 0)
 			
 			-- start close.
 			break
@@ -147,12 +144,12 @@ function connectWebSocket()
 		elseif typ == "text" then
 			-- post message to central.
 			local data = STATE_STRING_MESSAGE..connectionId..recv_data
-			addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
+			addJobCon:addjob(UPSTREAM_IDENTIFIER, data, 0)
 
 		elseif typ == "binary" then
 			-- post binary data to central.
 			local binData = STATE_BINARY_MESSAGE..connectionId..recv_data
-			addJobCon:addjob(IDENTIFIER_CONTEXT, binData, 0)
+			addJobCon:addjob(UPSTREAM_IDENTIFIER, binData, 0)
 		end
 	end
 
@@ -190,7 +187,7 @@ function contextReceiving ()
 			local ackRes, ackErr = receiveJobConn:fastack(messageId)
 			if not ackRes then
 				local data = STATE_DISCONNECT_DISQUE_ACKFAILED..connectionId..the_id
-				addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
+				addJobCon:addjob(UPSTREAM_IDENTIFIER, data, 0)
 				break
 			end
 			-- ngx.log(ngx.ERR, "messageId:", messageId, " ackRes:", ackRes)
@@ -209,7 +206,7 @@ function contextReceiving ()
 					local bytes, err = localWs:send_continue(continueData)
 					if not bytes then
 						local data = STATE_DISCONNECT_DISQUE_ACCIDT_SENDFAILED..connectionId..sendingData
-						addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
+						addJobCon:addjob(UPSTREAM_IDENTIFIER, data, 0)
 						failed = true
 						break
 					end
@@ -227,7 +224,7 @@ function contextReceiving ()
 				local bytes, err = localWs:send_binary(lastData)
 				if not bytes then
 					local data = STATE_DISCONNECT_DISQUE_ACCIDT_SENDFAILED..connectionId..sendingData
-					addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
+					addJobCon:addjob(UPSTREAM_IDENTIFIER, data, 0)
 					break
 				end
 
@@ -246,7 +243,7 @@ function contextReceiving ()
 				
 				if not bytes then
 					local data = STATE_DISCONNECT_DISQUE_ACCIDT_SENDFAILED..connectionId..sendingData
-					addJobCon:addjob(IDENTIFIER_CONTEXT, data, 0)
+					addJobCon:addjob(UPSTREAM_IDENTIFIER, data, 0)
 					break
 				end
 				--ngx.log(ngx.ERR, "receiving data5:", #res)

@@ -1,0 +1,1 @@
+go-udp-server:2018/01/03 18:30:46 main.go:50: ready go-udp-server. domain: /var/folders/hy/ps0_5j1506v9yqv74pqp6mgw0000gn/T/ go-udp-server port: 8081

@@ -1,11 +1,14 @@
 package main
 
 import (
-	"path/filepath"
-	"strconv"
+	"flag"
 	"fmt"
+	"io"
+	"log"
 	"net"
 	"os"
+	"path/filepath"
+	"strconv"
 )
 
 // CheckError checks for errors
@@ -17,15 +20,37 @@ func CheckError(err error) {
 }
 
 func main() {
+
+	file, err := os.OpenFile("file.txt", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		// log.Fatalln("Failed to open log file", output, ":", err)
+	}
+
+	multi := io.MultiWriter(file, os.Stdout)
+
+	logger := log.New(multi, "go-udp-server:", log.Ldate|log.Ltime|log.Lshortfile)
+
 	/*
-		次のことが実現できた。
 		・client -> go udp server でglobal ip/portを取得
 		・nginx lua -> go udp server -> client へとデータの送付
 		nginx streamのproxy passを通過しているので、このサーバのIOは全てnginxの出力として現れる。
 	*/
+	const socketName = "go-udp-server"
+
+	// unix domain socket base path.
+	defaultDomainSocketPath := os.TempDir()
+	domainSocketPath := flag.String("domain", defaultDomainSocketPath, "the base path for create unix domain socket. default is os.TempDir()")
+
+	// port.
+	defaultReceivePort := 8081
+	receivePort := flag.Int("port", defaultReceivePort, "the port for receiving udp data. default is 8081.")
+
+	flag.Parse()
+
+	logger.Println("ready go-udp-server. domain:", *domainSocketPath, socketName, "port:", *receivePort)
 
 	// udp receiver/sender.
-	ServerAddr, err := net.ResolveUDPAddr("udp", ":8081")
+	ServerAddr, err := net.ResolveUDPAddr("udp", ":"+strconv.Itoa(*receivePort))
 
 	CheckError(err)
 
@@ -45,12 +70,13 @@ func main() {
 			// fmt.Println("addr:", addr)
 
 			if err != nil {
-				fmt.Println("error: ", err)
+				logger.Println("error:", err)
 				continue
 			}
 
 			if buf2[0] == 'd' {
-				continue;
+				logger.Println("これ機能してるの？")
+				continue
 			}
 
 			addrStr := strconv.Itoa(addr.Port)
@@ -62,10 +88,8 @@ func main() {
 
 	// start unix domain socket listening.
 	// unix domain socket receiver.
-	path := filepath.Join(os.TempDir(), "go-udp-server")
+	path := filepath.Join(*domainSocketPath, socketName)
 	os.Remove(path)
-
-	fmt.Println("unix domain path:", path)
 
 	unixConn, err := net.ListenPacket("unixgram", path)
 	CheckError(err)
@@ -77,34 +101,32 @@ func main() {
 	defer unixConn.Close()
 
 	buf := make([]byte, 1024)
-	targetIp := net.ParseIP("127.0.0.1")
+	targetIP := net.ParseIP("127.0.0.1")
 
 	for {
 		n, _, err := unixConn.ReadFrom(buf)
 
 		count, err := strconv.Atoi(string(buf[:1]))
+		// logger.Println("count:", count, string(buf))
 
 		if err != nil {
-			fmt.Println("error1: ", err)
+			logger.Println("error1:", err)
 			continue
 		}
 
-		//fmt.Println("count:", count)
+		port := string(buf[1 : count+1])
+		// logger.Println("port:", port)
 
-		port := string(buf[1:count])// get port.
-		//fmt.Println("port:", port)
 		portNum, err := strconv.Atoi(port)
 		if err != nil {
-			fmt.Println("error2: ", err)
+			logger.Println("error2:", err)
 			continue
 		}
 
-		targetAddr := net.UDPAddr{IP:targetIp, Port:portNum, Zone:"sample"}
+		targetAddr := net.UDPAddr{IP: targetIP, Port: portNum, Zone: "sample"}
 
-		data := buf[count:n]
-		// send udp data to target ip:port.
+		data := buf[count+1 : n]
+		// send udp data to target port.
 		ServerConn.WriteTo(data, &targetAddr)
 	}
 }
-
-
