@@ -52,11 +52,6 @@ COPY ./DockerResources/build.sh nginx-$NGINX_VERSION/build.sh
 RUN cd nginx-$NGINX_VERSION && sh build.sh
 
 
-# add lua sources.
-RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/lua
-COPY ./DockerResources/lua nginx-$NGINX_VERSION/$NGINX_VERSION/lua
-
-
 # add go sources.
 RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/go
 COPY ./DockerResources/go nginx-$NGINX_VERSION/$NGINX_VERSION/go
@@ -75,6 +70,15 @@ COPY ./DockerResources/csharp nginx-$NGINX_VERSION/$NGINX_VERSION/csharp
 
 # make c# server.
 run cd nginx-$NGINX_VERSION/$NGINX_VERSION/csharp && dotnet build
+
+
+# install redis for test.
+RUN curl -O http://download.redis.io/redis-stable.tar.gz && tar xzvf redis-stable.tar.gz && cd redis-stable && make
+
+
+# add lua sources.
+RUN mkdir nginx-$NGINX_VERSION/$NGINX_VERSION/lua
+COPY ./DockerResources/lua nginx-$NGINX_VERSION/$NGINX_VERSION/lua
 
 
 COPY ./DockerResources/entry.sh entry.sh

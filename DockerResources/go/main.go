@@ -74,11 +74,6 @@ func main() {
 				continue
 			}
 
-			if buf2[0] == 'd' {
-				logger.Println("これ機能してるの？")
-				continue
-			}
-
 			addrStr := strconv.Itoa(addr.Port)
 
 			// ポート番号を返す。
@@ -103,6 +98,7 @@ func main() {
 	buf := make([]byte, 1024)
 	targetIP := net.ParseIP("127.0.0.1")
 
+	// 先頭1byteに入ったport文字数を取得し、そのポートへと以降のデータを送付する。
 	for {
 		n, _, err := unixConn.ReadFrom(buf)
 
