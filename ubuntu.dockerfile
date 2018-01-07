@@ -73,7 +73,7 @@ run cd nginx-$NGINX_VERSION/$NGINX_VERSION/csharp && dotnet build
 
 
 # install redis for test.
-RUN curl -O http://download.redis.io/redis-stable.tar.gz && tar xzvf redis-stable.tar.gz && cd redis-stable && make
+# RUN curl -O http://download.redis.io/redis-stable.tar.gz && tar xzvf redis-stable.tar.gz && cd redis-stable && make
 
 
 # add lua sources.
