@@ -17,7 +17,8 @@ STATE_DISCONNECT_DISQUE_ACCIDT_SENDFAILED = 7
 DISQUE_IP = "127.0.0.1"
 DISQUE_PORT = 7711
 
--- CONNECTION_ID is nginx's request id. that len is 32. guidv4 length is 36, add four "0".
+-- CONNECTION_ID is nginx's request id. that len is 32. guidv4 length is 36, add four "0". 
+-- overwritten by token.
 CONNECTION_ID = ngx.var.request_id .. "0000"
 
 -- go unix domain socket path.
@@ -89,6 +90,7 @@ if false then
 	user_data = res
 else
 	user_data = token
+	CONNECTION_ID = token
 end
 
 -- ngx.log(ngx.ERR, "connection:", CONNECTION_ID, " user_data:", user_data)
@@ -264,6 +266,12 @@ function fromUpstreamToDownstream()
 			end
 		end
 	end
+
+	ws:send_close()
+	ngx.log(ngx.ERR, "connection:", CONNECTION_ID, " connection closed")
+
+	receiveJobConn:close()
+	addJobConn:close()
 	
 	ngx.exit(200)
 end

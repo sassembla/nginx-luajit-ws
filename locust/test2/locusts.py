@@ -2,6 +2,7 @@
 # from locust import Locust, TaskSet, task
 from websocket import create_connection
 import time
+import uuid
 import socket
 import concurrent.futures
 import sys
@@ -16,78 +17,78 @@ udp接続、パラメータ受け取り、ws接続、ws送信、というのを�
 ・接続に失敗したらエラーを出す
 """
 
-
+udpCount = {}
 def continue_connect():
 
-	# Create a udp socket
-	sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    # Create a udp socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-	server_ip = "150.95.180.35"
-	server_port = 8080
-	message_per_sec = 100.0 / 1000.0
-	server_path = "sample_disque_client"
+    server_ip = "150.95.211.59"
+    # server_ip = "127.0.0.1"
 
-	udp_server_addr = (server_ip, server_port)
+    server_port = 8080
+    message_per_sec = 100.0 / 1000.0
+    server_path = "sample_disque_client"
 
-	data = bytearray(str.encode("my udp packet."))
-	sock.sendto(data, (server_ip, server_port))
+    udp_server_addr = (server_ip, server_port)
 
-	current_udp_port = sock.getsockname()[1]
+    data = bytearray(str.encode("my udp packet."))
+    sock.sendto(data, (server_ip, server_port))
 
-	port = ""
+    current_udp_port = sock.getsockname()[1]
 
-	while True:
-		data, address = sock.recvfrom(1024)
-		# print('received %s bytes from %s' % (len(data), address))
-		# print("data:", data)
-		port = data.decode("utf-8")
-		break
+    port = ""
 
-	# 自前で閉じるとどうなるんだろ。-> ソケット自体の状態には関連してないみたい。ふむ、、
-	# sock.close()
+    while True:
+        data, address = sock.recvfrom(1024)
+        port = data.decode("utf-8")
+        break
 
-	# print("first udp received, start websocket connection. port:", port)
+    path = "sample_disque_client"
 
-	path = "sample_disque_client"
-	# path = "disque_clientRankerChat"
+    connection_id = str(uuid.uuid4())
 
-	conn = create_connection("ws://" + server_ip + ":" + str(server_port) + "/" + path, header={"token":"dummy", "param": port}, subprotocols=["binary"])
-	# print("connect succeeded.")
+    conn = create_connection("ws://" + server_ip + ":" + str(server_port) + "/" + path, header={"token":connection_id, "param": port}, subprotocols=["binary"])
+    conn.settimeout(60)
+    print("established connection_id:", connection_id)
 
-	# udpとwsの両方を受信し続ける。
+    # udpとwsの両方を受信し続ける。
 
-	executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=2)
 
-	ws_count = 0
-	udp_count = 0
+    tcpCount = 0
 
 
-	# udp receiver.
-	def udpReceive():
-		while True:
-			# print("start receive. sock:", sock.gettimeout())
-			data, address = sock.recvfrom(1024)
-			# countup()
-			print("udpReceive.")
-			
-	
-	fut = executor.submit(udpReceive)
-	# fut.add_done_callback(countup)
+    # udp receiver.
+    def udpReceive():
+        global udpCount
+        udpCount[connection_id] = 0
+        while True:
+            data, address = sock.recvfrom(1024)
+            udpCount[connection_id] = udpCount[connection_id] + 1
+            
+    
+    fut = executor.submit(udpReceive)
 
     # send first data to server.
-	result = conn.send_binary("my ws packet.")
-	
-	while True:
-		result = conn.recv()
-		
-		time.sleep(message_per_sec)
+    result = conn.send_binary(connection_id)
+    uuidLen = len(connection_id)
 
-		# send something.
-		conn.send("testdata______________________")
+    # 受診時間の間を計測、1秒待っても何もこない場合、エラーで終了
+    while True:
+        try:
+            result = conn.recv()
+            assert len(result) == uuidLen, "less data received, uuid:" + connection_id + " length:" + str(len(result)) + " t:" + tcpCount + " u:" + udpCount
 
-		# print("udp_count:", udp_count)
-		ws_count = ws_count + 1
+        except Exception as e:
+            print("connection closed, uuid:", connection_id, "reason:", e, " t:", tcpCount, "u:", udpCount[connection_id])
+            break
 
+        tcpCount = tcpCount + 1
+        time.sleep(message_per_sec)
+
+        # send some data. 36btye.
+        conn.send(connection_id)
 
 continue_connect()
 

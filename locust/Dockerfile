@@ -5,7 +5,8 @@ FROM ubuntu:16.04
 RUN apt-get update
 RUN apt-get install -y python3 python3-pip
 
-RUN pip3 install websocket-client locustio
+RUN pip3 install locustio
+# websocket-client -> 接続状況をチェックできるようにメソッド追加したものを同梱。
 
 ADD run.sh /usr/local/bin/run.sh
 RUN chmod 755 /usr/local/bin/run.sh
