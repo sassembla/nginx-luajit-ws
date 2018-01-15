@@ -47,7 +47,6 @@ end
 ---- POINT BEFORE CONNECT ----
 
 -- redis example.
--- このままだと通信単位でredisアクセスが発生しちゃうので、このブロック内で、なんらかのtokenチェックをやるとかするとなお良い。このサーバにくるはずなら〜とかそういう要素で。
 if false then
 	local redis = require "redis.redis"
 	local redisConn = redis:new()
@@ -58,10 +57,10 @@ if false then
 		return
 	end
 
-	-- トークンをキーにして取得
+	-- get value from redis using token.
 	local res, err = redisConn:get(token)
 	
-	-- キーがkvsになかったら認証失敗として終了
+	-- no key found => failed to authenticate.
 	if not res then
 		-- no key found.
 		ngx.log(ngx.ERR, "connection:", CONNECTION_ID, " failed to authenticate. no token found in kvs.")
