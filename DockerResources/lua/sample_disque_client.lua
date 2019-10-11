@@ -65,7 +65,7 @@ if false then
 		-- no key found.
 		ngx.log(ngx.ERR, "connection:", CONNECTION_ID, " failed to authenticate. no token found in kvs.")
 
-		-- 切断
+		-- close 
 		redisConn:close()
 		ngx.exit(200)
 		return
@@ -73,7 +73,7 @@ if false then
 		-- no value found.
 		ngx.log(ngx.ERR, "connection:", CONNECTION_ID, " failed to authenticate. token is nil.")
 
-		-- 切断
+		-- close 
 		redisConn:close()
 		ngx.exit(200)
 		return
@@ -82,10 +82,10 @@ if false then
 	-- delete got key.
 	local ok, err = redisConn:del(token)
 
-	-- 切断
+	-- close
 	redisConn:close()
 
-	-- 変数にセット、パラメータとして渡す。
+	-- set parameter
 	user_data = res
 else
 	user_data = token
