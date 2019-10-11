@@ -88,11 +88,13 @@ if false then
 	-- set parameter
 	user_data = res
 else
-	user_data = token
-	CONNECTION_ID = token
+	user_data = ""
+	if token ~= "" then
+		CONNECTION_ID = token
+	end
 end
 
--- ngx.log(ngx.ERR, "connection:", CONNECTION_ID, " user_data:", user_data)
+ngx.log(ngx.ERR, "connection:", CONNECTION_ID, " user_data:", user_data)
 
 
 
