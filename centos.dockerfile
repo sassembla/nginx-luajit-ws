@@ -1,13 +1,15 @@
-FROM centos
+FROM centos:centos7
 
 ENV NGINX_VERSION 1.13.6
-ENV LUAJIT_VERSION 2.0.5
+ENV LUAJIT_VERSION 2.1.0-beta3
 ENV NGINX_DEVEL_KIT_VERSION v0.3.0
 ENV NGINX_LUAJIT_VERSION v0.10.11
 
 # RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc
 
 # RUN sh -c 'echo -e "[packages-microsoft-com-prod]\nname=packages-microsoft-com-prod \nbaseurl=https://packages.microsoft.com/yumrepos/microsoft-rhel7.3-prod\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" > /etc/yum.repos.d/dotnetdev.repo'
+
+RUN yum -y install epel-release
 
 # ready tools.
 RUN yum -y install \
